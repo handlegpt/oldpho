@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # 主应用服务
+  app:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-ophoto_password_2024}@db:5432/ophoto
+      - SHADOW_DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-ophoto_password_2024}@db:5432/ophoto_shadow
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3001}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-secret-key-here}
+      - REPLICATE_API_KEY=${REPLICATE_API_KEY}
+      - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL:-redis://redis:6379}
+      - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - NEXT_PUBLIC_UPLOAD_API_KEY=${NEXT_PUBLIC_UPLOAD_API_KEY}
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+
+  # PostgreSQL 数据库
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=ophoto
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-ophoto_password_2024}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  # Redis 缓存（用于速率限制）
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data: 
