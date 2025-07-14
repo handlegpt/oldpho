@@ -10,12 +10,17 @@ WORKDIR /app
 # 设置npm镜像源以提高下载速度
 RUN npm config set registry https://registry.npmmirror.com/
 RUN npm config set cache /tmp/npm-cache
+RUN npm config set timeout 600000
+
+# 设置环境变量跳过 puppeteer Chrome 下载
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 
 # 复制 package.json 和 package-lock.json
 COPY package*.json ./
 
-# 安装依赖（使用缓存）
-RUN npm install --prefer-offline --no-audit
+# 安装依赖（使用缓存和超时设置）
+RUN npm install --prefer-offline --no-audit --progress=false
 
 # 复制源代码
 COPY . .
@@ -41,12 +46,17 @@ RUN adduser --system --uid 1001 nextjs
 
 # 设置npm镜像源
 RUN npm config set registry https://registry.npmmirror.com/
+RUN npm config set timeout 600000
+
+# 设置环境变量跳过 puppeteer Chrome 下载
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 
 # 复制 package.json
 COPY package*.json ./
 
 # 只安装生产依赖
-RUN npm install --omit=dev --prefer-offline --no-audit && npm cache clean --force
+RUN npm install --omit=dev --prefer-offline --no-audit --progress=false && npm cache clean --force
 
 # 复制构建产物
 COPY --from=builder /app/.next/standalone ./
