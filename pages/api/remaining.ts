@@ -36,9 +36,9 @@ export default async function handler(
       }
     }
 
-    // Calculate remaining time until reset (30 days from first use)
-    const firstUseDate = new Date(Date.now() - (usedGenerations * windowDuration));
-    const resetDate = new Date(firstUseDate.getTime() + windowDuration);
+    // Calculate remaining time until reset (30 days from bucket start)
+    const bucketStartTime = bucket * windowDuration;
+    const resetDate = new Date(bucketStartTime + windowDuration);
     
     const diff = Math.abs(resetDate.getTime() - new Date().getTime());
     const days = Math.floor(diff / 1000 / 60 / 60 / 24);
