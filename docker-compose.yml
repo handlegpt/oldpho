@@ -10,7 +10,7 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
       - SHADOW_DATABASE_URL=${SHADOW_DATABASE_URL}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://oldpho.com}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://oldpho.com}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-secret-key-here}
       - REPLICATE_API_KEY=${REPLICATE_API_KEY}
       - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL:-redis://redis:6379}
@@ -19,6 +19,7 @@ services:
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - NEXT_PUBLIC_UPLOAD_API_KEY=${NEXT_PUBLIC_UPLOAD_API_KEY}
       - NEXT_PUBLIC_PLAUSIBLE_DOMAIN=${NEXT_PUBLIC_PLAUSIBLE_DOMAIN:-oldpho.com}
+      - TRUSTED_PROXY=true
     depends_on:
       - db
       - redis
