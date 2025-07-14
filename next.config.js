@@ -153,20 +153,32 @@ const nextConfig = {
       };
 
       // 优化模块解析
+      // 添加 Service Worker 支持
+      if (!isServer) {
+        config.resolve.fallback = {
+          ...config.resolve.fallback,
+          fs: false,
+          net: false,
+          tls: false,
+          crypto: false,
+          stream: false,
+          url: false,
+          zlib: false,
+          http: false,
+          https: false,
+          assert: false,
+          os: false,
+          path: false,
+        };
+      }
+
+      // 修复 React 模块解析
       config.resolve.alias = {
         ...config.resolve.alias,
         'react': require.resolve('react'),
         'react-dom': require.resolve('react-dom'),
-      };
-    }
-
-    // 添加 Service Worker 支持
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
+        'react/jsx-runtime': require.resolve('react/jsx-runtime'),
+        'react/jsx-dev-runtime': require.resolve('react/jsx-dev-runtime'),
       };
     }
 
