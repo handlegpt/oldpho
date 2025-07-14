@@ -30,6 +30,7 @@ import Toast from '../components/Toast';
 import AnimatedCard from '../components/AnimatedCard';
 import ShareModal from '../components/ShareModal';
 import ShareButton from '../components/ShareButton';
+import LoginButton from '../components/LoginButton';
 
 const Home: NextPage = () => {
   const [originalPhoto, setOriginalPhoto] = useState<string | null>(null);
@@ -47,6 +48,7 @@ const Home: NextPage = () => {
   const [toast, setToast] = useState<{ type: 'success' | 'error' | 'warning' | 'info'; message: string } | null>(null);
   const [showShareModal, setShowShareModal] = useState<boolean>(false);
   const [isClient, setIsClient] = useState<boolean>(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const t = translations[currentLanguage];
 
@@ -281,6 +283,14 @@ const Home: NextPage = () => {
     }
   };
 
+  const handleAuthError = (errorMessage: string) => {
+    setAuthError(errorMessage);
+    setToast({
+      type: 'error',
+      message: errorMessage
+    });
+  };
+
   return (
     <div className='flex max-w-7xl mx-auto flex-col items-center justify-center py-2 min-h-screen'>
       <Head>
@@ -320,12 +330,15 @@ const Home: NextPage = () => {
                       : 'Please log in to your account to use the photo restoration feature.'
                     }
                   </p>
-                  <button
-                    onClick={() => signIn('google')}
-                    className="bg-blue-600 text-white rounded-xl font-semibold px-8 py-4 hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg active:scale-95"
-                  >
-                    {currentLanguage === 'zh-TW' ? '使用 Google 登录' : currentLanguage === 'ja' ? 'Googleでログイン' : 'Sign in with Google'}
-                  </button>
+                  {authError && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                      <p className="text-red-700 text-sm">{authError}</p>
+                    </div>
+                  )}
+                  <LoginButton
+                    currentLanguage={currentLanguage}
+                    onError={handleAuthError}
+                  />
                 </div>
               </AnimatedCard>
             </div>
