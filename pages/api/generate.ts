@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import redis from '../../utils/redis';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from './auth/[...nextauth]';
+import prisma from '../../lib/prismadb';
 
 type Data = string;
 interface ExtendedNextApiRequest extends NextApiRequest {
@@ -10,14 +11,6 @@ interface ExtendedNextApiRequest extends NextApiRequest {
     imageUrl: string;
   };
 }
-
-// Create a new ratelimiter, that allows 5 requests per month
-const ratelimit = redis
-  ? new Ratelimit({
-      redis,
-      limiter: Ratelimit.fixedWindow(5, '43200 m'), // 30 days = 43200 minutes
-    })
-  : undefined;
 
 export default async function handler(
   req: ExtendedNextApiRequest,
@@ -40,35 +33,73 @@ export default async function handler(
     return res.status(400).json('Image URL is required');
   }
 
-  // Rate Limiting by user email
-  if (ratelimit) {
-    const identifier = session.user.email;
-    const result = await ratelimit.limit(identifier!);
-    res.setHeader('X-RateLimit-Limit', result.limit);
-    res.setHeader('X-RateLimit-Remaining', result.remaining);
-
-    // Calculate the remaining time until generations are reset
-    const diff = Math.abs(
-      new Date(result.reset).getTime() - new Date().getTime()
-    );
-    const hours = Math.floor(diff / 1000 / 60 / 60);
-    const minutes = Math.floor(diff / 1000 / 60) - hours * 60;
-
-    if (!result.success) {
-      return res
-        .status(429)
-        .json(
-          `Your generations will renew in ${hours} hours and ${minutes} minutes. Please try again later.`
-        );
-    }
-  }
-
-  // Check if Replicate API key is configured
-  if (!process.env.REPLICATE_API_KEY) {
-    return res.status(500).json('Replicate API key not configured');
-  }
-
   try {
+    // Get user's subscription
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email! },
+      include: { subscription: true }
+    });
+
+    if (!user) {
+      return res.status(404).json('User not found');
+    }
+
+    // Determine rate limit based on subscription
+    let rateLimit: number;
+    let isFreeUser = true;
+
+    if (user.subscription && user.subscription.status === 'active') {
+      switch (user.subscription.planId) {
+        case 'pro':
+          rateLimit = 50;
+          isFreeUser = false;
+          break;
+        case 'enterprise':
+          rateLimit = -1; // Unlimited
+          isFreeUser = false;
+          break;
+        default:
+          rateLimit = 5;
+          isFreeUser = true;
+      }
+    } else {
+      rateLimit = 5; // Free plan
+      isFreeUser = true;
+    }
+
+    // Rate Limiting by user email
+    if (redis && rateLimit !== -1) {
+      const ratelimit = new Ratelimit({
+        redis,
+        limiter: Ratelimit.fixedWindow(rateLimit, '43200 m'), // 30 days
+      });
+
+      const identifier = session.user.email;
+      const result = await ratelimit.limit(identifier!);
+      res.setHeader('X-RateLimit-Limit', result.limit);
+      res.setHeader('X-RateLimit-Remaining', result.remaining);
+
+      // Calculate the remaining time until generations are reset
+      const diff = Math.abs(
+        new Date(result.reset).getTime() - new Date().getTime()
+      );
+      const hours = Math.floor(diff / 1000 / 60 / 60);
+      const minutes = Math.floor(diff / 1000 / 60) - hours * 60;
+
+      if (!result.success) {
+        return res
+          .status(429)
+          .json(
+            `Your generations will renew in ${hours} hours and ${minutes} minutes. Please try again later.`
+          );
+      }
+    }
+
+    // Check if Replicate API key is configured
+    if (!process.env.REPLICATE_API_KEY) {
+      return res.status(500).json('Replicate API key not configured');
+    }
+
     // POST request to Replicate to start the image restoration generation process
     let startResponse = await fetch('https://api.replicate.com/v1/predictions', {
       method: 'POST',
@@ -135,8 +166,7 @@ export default async function handler(
       return res.status(408).json('Image restoration timed out');
     }
 
-    // 为免费用户添加水印标记
-    const isFreeUser = true; // 暂时所有用户都是免费用户
+    // 根据用户订阅计划决定是否添加水印
     const responseData = {
       imageUrl: restoredImage,
       hasWatermark: isFreeUser,
