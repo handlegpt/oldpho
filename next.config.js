@@ -20,7 +20,6 @@ const nextConfig = {
 
   // 实验性功能
   experimental: {
-    optimizeCss: true,
     scrollRestoration: true,
   },
 
