@@ -1,0 +1,179 @@
+/* 性能优化 CSS */
+
+/* 启用硬件加速 */
+.hardware-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* 优化动画性能 */
+.optimized-animation {
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+/* 减少重绘的元素 */
+.no-repaint {
+  transform: translateZ(0);
+  will-change: auto;
+}
+
+/* 优化滚动容器 */
+.smooth-scroll {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* 优化图片容器 */
+.image-container {
+  contain: layout style paint;
+  will-change: transform;
+}
+
+/* 优化按钮响应 */
+.button-optimized {
+  transform: translateZ(0);
+  transition: transform 0.1s ease-out;
+  will-change: transform;
+}
+
+.button-optimized:active {
+  transform: scale(0.98) translateZ(0);
+}
+
+/* 优化卡片动画 */
+.card-optimized {
+  transform: translateZ(0);
+  will-change: transform;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.card-optimized:hover {
+  transform: translateY(-2px) translateZ(0);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* 优化文本渲染 */
+.text-optimized {
+  text-rendering: optimizeSpeed;
+  font-smooth: never;
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+
+/* 优化布局 */
+.layout-optimized {
+  contain: layout;
+  will-change: auto;
+}
+
+/* 减少内存使用的动画 */
+.memory-efficient {
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out;
+}
+
+/* 优化触摸反馈 */
+.touch-optimized {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* 优化图片加载 */
+.image-lazy {
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+}
+
+.image-lazy.loaded {
+  opacity: 1;
+}
+
+/* 优化字体加载 */
+.font-optimized {
+  font-display: swap;
+}
+
+/* 优化滚动性能 */
+.scroll-container {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* 优化列表渲染 */
+.list-optimized {
+  contain: layout style;
+  will-change: auto;
+}
+
+.list-optimized > * {
+  contain: layout style paint;
+}
+
+/* 优化模态框 */
+.modal-optimized {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+}
+
+/* 优化加载状态 */
+.loading-optimized {
+  contain: layout style paint;
+  will-change: opacity;
+}
+
+/* 优化表单元素 */
+.form-optimized input,
+.form-optimized textarea,
+.form-optimized select {
+  transform: translateZ(0);
+  will-change: auto;
+}
+
+/* 优化导航菜单 */
+.nav-optimized {
+  contain: layout style;
+  will-change: auto;
+}
+
+.nav-optimized a {
+  transform: translateZ(0);
+  transition: color 0.2s ease-out;
+}
+
+/* 优化页脚 */
+.footer-optimized {
+  contain: layout style;
+  will-change: auto;
+}
+
+/* 媒体查询优化 */
+@media (prefers-reduced-motion: reduce) {
+  .optimized-animation,
+  .card-optimized,
+  .modal-optimized {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* 高对比度模式优化 */
+@media (prefers-contrast: high) {
+  .card-optimized:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* 打印样式优化 */
+@media print {
+  .hardware-accelerated,
+  .optimized-animation,
+  .card-optimized {
+    transform: none !important;
+    will-change: auto !important;
+  }
+} 

@@ -7,6 +7,7 @@ import Footer from '../components/Footer';
 import SEOOptimizer from '../components/SEOOptimizer';
 import PerformanceMonitor from '../components/PerformanceMonitor';
 import PerformanceOptimizer from '../components/PerformanceOptimizer';
+import JankDetector from '../components/JankDetector';
 import { Language, translations } from '../utils/translations';
 import { getStoredLanguage, setStoredLanguage } from '../utils/languageStorage';
 import AnimatedCard from '../components/AnimatedCard';
@@ -119,6 +120,7 @@ const Home: NextPage = () => {
       />
       <PerformanceMonitor />
       <PerformanceOptimizer />
+      <JankDetector />
       
       <Header 
         currentLanguage={currentLanguage}

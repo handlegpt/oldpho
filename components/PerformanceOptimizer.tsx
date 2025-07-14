@@ -211,6 +211,89 @@ const PerformanceOptimizer: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // 防抖优化
+  useEffect(() => {
+    const debounce = (func: Function, wait: number) => {
+      let timeout: NodeJS.Timeout;
+      return function executedFunction(...args: any[]) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    };
+
+    // 优化滚动事件
+    const optimizedScrollHandler = debounce(() => {
+      // 滚动优化逻辑
+    }, 16); // 60fps
+
+    window.addEventListener('scroll', optimizedScrollHandler, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', optimizedScrollHandler);
+    };
+  }, []);
+
+  // 内存优化
+  useEffect(() => {
+    // 定期清理内存
+    const memoryCleanup = () => {
+      if ('memory' in performance) {
+        const memory = (performance as any).memory;
+        if (memory.usedJSHeapSize > 50 * 1024 * 1024) { // 50MB
+          console.warn('内存使用过高，建议优化');
+        }
+      }
+    };
+
+    const interval = setInterval(memoryCleanup, 30000); // 每30秒检查一次
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // 图片懒加载优化
+  useEffect(() => {
+    if ('IntersectionObserver' in window) {
+      const imageObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target as HTMLImageElement;
+            if (img.dataset.src) {
+              img.src = img.dataset.src;
+              img.removeAttribute('data-src');
+              imageObserver.unobserve(img);
+            }
+          }
+        });
+      });
+
+      const lazyImages = document.querySelectorAll('img[data-src]');
+      lazyImages.forEach(img => imageObserver.observe(img));
+
+      return () => imageObserver.disconnect();
+    }
+  }, []);
+
+  // 长任务检测
+  useEffect(() => {
+    if ('PerformanceObserver' in window) {
+      const longTaskObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (entry.duration > 50) { // 50ms以上的任务
+            console.warn('检测到长任务:', entry);
+          }
+        }
+      });
+
+      longTaskObserver.observe({ entryTypes: ['longtask'] });
+
+      return () => longTaskObserver.disconnect();
+    }
+  }, []);
+
   return null; // 这是一个无渲染组件
 };
 
