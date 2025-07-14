@@ -5,6 +5,11 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // 启用实验性功能
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['@headlessui/react', 'react-loader-spinner'],
+  },
   images: {
     domains: ["upcdn.io", "replicate.delivery", "lh3.googleusercontent.com"],
     unoptimized: true,
@@ -104,7 +109,7 @@ const nextConfig = {
   // 压缩配置
   compress: true,
   // 生产环境优化
-  // swcMinify: true, // 已废弃，移除
+  swcMinify: true,
   // 输出配置
   output: 'standalone',
   // 添加环境变量
@@ -123,8 +128,37 @@ const nextConfig = {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
             chunks: 'all',
+            priority: 10,
+          },
+          // TensorFlow.js 单独打包
+          tensorflow: {
+            test: /[\\/]node_modules[\\/]@tensorflow[\\/]/,
+            name: 'tensorflow',
+            chunks: 'all',
+            priority: 20,
+          },
+          // NSFW 相关库单独打包
+          nsfw: {
+            test: /[\\/]node_modules[\\/](nsfwjs|nsfw-filter)[\\/]/,
+            name: 'nsfw',
+            chunks: 'all',
+            priority: 15,
+          },
+          // 其他第三方库
+          common: {
+            name: 'common',
+            minChunks: 2,
+            chunks: 'all',
+            priority: 5,
           },
         },
+      };
+
+      // 优化模块解析
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'react': require.resolve('react'),
+        'react-dom': require.resolve('react-dom'),
       };
     }
 
@@ -133,10 +167,33 @@ const nextConfig = {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
+        net: false,
+        tls: false,
       };
     }
 
+    // 优化图片处理
+    config.module.rules.push({
+      test: /\.(png|jpe?g|gif|svg)$/i,
+      use: [
+        {
+          loader: 'url-loader',
+          options: {
+            limit: 8192,
+            fallback: 'file-loader',
+          },
+        },
+      ],
+    });
+
     return config;
+  },
+  // 页面优化
+  onDemandEntries: {
+    // 页面在内存中保持的时间（毫秒）
+    maxInactiveAge: 25 * 1000,
+    // 同时保持的页面数量
+    pagesBufferLength: 2,
   },
 };
 

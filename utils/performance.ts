@@ -386,3 +386,139 @@ export class UserBehaviorTracker {
 }
 
 export const userBehaviorTracker = new UserBehaviorTracker(); 
+
+// 资源预加载管理器
+export class ResourcePreloader {
+  private preloadedResources = new Set<string>();
+  private preloadQueue: string[] = [];
+  private isProcessing = false;
+
+  // 预加载关键资源
+  async preloadCriticalResources() {
+    const criticalResources = [
+      '/fonts/inter-var.woff2',
+      '/icon-192x192.png',
+      '/manifest.json'
+    ];
+
+    for (const resource of criticalResources) {
+      await this.preloadResource(resource);
+    }
+  }
+
+  // 预加载单个资源
+  async preloadResource(url: string): Promise<void> {
+    if (this.preloadedResources.has(url)) {
+      return;
+    }
+
+    return new Promise((resolve, reject) => {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = this.getResourceType(url);
+      link.href = url;
+      link.onload = () => {
+        this.preloadedResources.add(url);
+        resolve();
+      };
+      link.onerror = () => {
+        console.warn(`Failed to preload: ${url}`);
+        resolve(); // 不阻塞其他资源
+      };
+      document.head.appendChild(link);
+    });
+  }
+
+  // 获取资源类型
+  private getResourceType(url: string): string {
+    if (url.endsWith('.woff2') || url.endsWith('.woff') || url.endsWith('.ttf')) {
+      return 'font';
+    }
+    if (url.endsWith('.png') || url.endsWith('.jpg') || url.endsWith('.jpeg') || url.endsWith('.gif') || url.endsWith('.svg')) {
+      return 'image';
+    }
+    if (url.endsWith('.css')) {
+      return 'style';
+    }
+    if (url.endsWith('.js')) {
+      return 'script';
+    }
+    return 'fetch';
+  }
+
+  // 批量预加载
+  async preloadBatch(urls: string[]): Promise<void> {
+    this.preloadQueue.push(...urls);
+    
+    if (!this.isProcessing) {
+      this.processQueue();
+    }
+  }
+
+  private async processQueue(): Promise<void> {
+    this.isProcessing = true;
+    
+    while (this.preloadQueue.length > 0) {
+      const url = this.preloadQueue.shift();
+      if (url) {
+        await this.preloadResource(url);
+      }
+    }
+    
+    this.isProcessing = false;
+  }
+}
+
+// 智能缓存管理器
+export class SmartCacheManager {
+  private cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+  private maxSize = 100;
+
+  set<T>(key: string, data: T, ttl: number = 300000): void {
+    this.cleanup();
+    
+    if (this.cache.size >= this.maxSize) {
+      const oldestKey = Array.from(this.cache.keys())[0];
+      this.cache.delete(oldestKey);
+    }
+
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl
+    });
+  }
+
+  get<T>(key: string): T | null {
+    const item = this.cache.get(key);
+    
+    if (!item) {
+      return null;
+    }
+
+    if (Date.now() - item.timestamp > item.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return item.data as T;
+  }
+
+  private cleanup(): void {
+    const now = Date.now();
+    const entries = Array.from(this.cache.entries());
+    for (const [key, item] of entries) {
+      if (now - item.timestamp > item.ttl) {
+        this.cache.delete(key);
+      }
+    }
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+// 全局实例
+export const resourcePreloader = new ResourcePreloader();
+export const smartCache = new SmartCacheManager(); 

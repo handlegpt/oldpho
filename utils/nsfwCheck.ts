@@ -6,23 +6,48 @@ tf.enableProdMode();
 class NSFWPredictor {
   model: nsfwjs.NSFWJS | null = null;
   modelLoaded = false;
+  loadingPromise: Promise<void> | null = null;
   
   constructor() {
     this.model = null;
-    this.getModel();
+    // 延迟加载模型，不在构造函数中立即加载
   }
   
   async getModel() {
+    // 如果已经在加载中，返回现有的promise
+    if (this.loadingPromise) {
+      return this.loadingPromise;
+    }
+
+    // 如果已经加载完成，直接返回
+    if (this.modelLoaded && this.model) {
+      return Promise.resolve();
+    }
+
+    // 创建新的加载promise
+    this.loadingPromise = this._loadModel();
+    return this.loadingPromise;
+  }
+
+  private async _loadModel() {
     try {
+      console.log('开始加载NSFW模型...');
+      const startTime = performance.now();
+      
       this.model = await nsfwjs.load(
         "https://nsfw-model-1.s3.us-west-2.amazonaws.com/nsfw-predict-model/",
         // @ts-ignore
         { type: "graph" }
       );
+      
       this.modelLoaded = true;
+      const loadTime = performance.now() - startTime;
+      console.log(`NSFW模型加载完成，耗时: ${loadTime.toFixed(2)}ms`);
     } catch (error) {
       console.error('NSFW model loading failed:', error);
       this.modelLoaded = false;
+      this.loadingPromise = null; // 重置promise，允许重试
+      throw error;
     }
   }
 
@@ -34,6 +59,9 @@ class NSFWPredictor {
   }
 
   async predictImg(file: File, guesses = 5) {
+    // 确保模型已加载
+    await this.getModel();
+    
     const url = URL.createObjectURL(file);
     try {
       const img = document.createElement("img");
@@ -93,6 +121,25 @@ class NSFWPredictor {
       console.error('NSFW check failed:', error);
       // 如果检查失败，默认返回安全
       return true;
+    }
+  }
+
+  // 预加载模型（可选）
+  async preloadModel() {
+    if (!this.modelLoaded && !this.loadingPromise) {
+      console.log('预加载NSFW模型...');
+      await this.getModel();
+    }
+  }
+
+  // 清理资源
+  dispose() {
+    if (this.model) {
+      // 清理TensorFlow.js资源
+      tf.dispose();
+      this.model = null;
+      this.modelLoaded = false;
+      this.loadingPromise = null;
     }
   }
 }

@@ -3,12 +3,16 @@ import { SessionProvider } from 'next-auth/react';
 import '../styles/globals.css';
 import PlausibleProvider from 'next-plausible';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Head from 'next/head';
 
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
+  const [isClient, setIsClient] = useState(false);
+
   // 全局错误处理
   useEffect(() => {
+    setIsClient(true);
+    
     const handleError = (error: ErrorEvent) => {
       console.error('Global error:', error);
       // 这里可以添加错误上报逻辑
@@ -28,28 +32,49 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
     };
   }, []);
 
-  // PWA 安装提示
+  // PWA 安装提示 - 延迟加载
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // 检查是否支持 Service Worker
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-          .then((registration) => {
-            console.log('SW registered: ', registration);
-          })
-          .catch((registrationError) => {
-            console.log('SW registration failed: ', registrationError);
-          });
-      }
+    if (!isClient) return;
 
-      // 延迟加载 Service Worker
+    // 延迟加载 Service Worker
+    const loadServiceWorker = async () => {
       if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js');
-        });
+        try {
+          const registration = await navigator.serviceWorker.register('/sw.js');
+          console.log('SW registered: ', registration);
+        } catch (registrationError) {
+          console.log('SW registration failed: ', registrationError);
+        }
       }
-    }
-  }, []);
+    };
+
+    // 延迟1秒后加载Service Worker
+    const timer = setTimeout(loadServiceWorker, 1000);
+    return () => clearTimeout(timer);
+  }, [isClient]);
+
+  // 性能监控
+  useEffect(() => {
+    if (!isClient) return;
+
+    // 监控页面加载性能
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (entry.entryType === 'navigation') {
+          const navEntry = entry as PerformanceNavigationTiming;
+          console.log('页面加载时间:', {
+            domContentLoaded: navEntry.domContentLoadedEventEnd - navEntry.domContentLoadedEventStart,
+            loadComplete: navEntry.loadEventEnd - navEntry.loadEventStart,
+            total: navEntry.loadEventEnd - navEntry.fetchStart
+          });
+        }
+      }
+    });
+
+    observer.observe({ entryTypes: ['navigation'] });
+
+    return () => observer.disconnect();
+  }, [isClient]);
 
   return (
     <ErrorBoundary>
@@ -75,6 +100,12 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
         <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="//upcdn.io" />
         <link rel="dns-prefetch" href="//replicate.delivery" />
+        
+        {/* 性能优化 */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://upcdn.io" />
+        <link rel="preconnect" href="https://replicate.delivery" />
       </Head>
       <SessionProvider session={session}>
         <PlausibleProvider domain='oldpho.com'>

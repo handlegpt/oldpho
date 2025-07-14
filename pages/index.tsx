@@ -6,6 +6,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import SEOOptimizer from '../components/SEOOptimizer';
 import PerformanceMonitor from '../components/PerformanceMonitor';
+import PerformanceOptimizer from '../components/PerformanceOptimizer';
 import { Language, translations } from '../utils/translations';
 import { getStoredLanguage, setStoredLanguage } from '../utils/languageStorage';
 import AnimatedCard from '../components/AnimatedCard';
@@ -117,6 +118,7 @@ const Home: NextPage = () => {
         url={isClient ? window.location.href : ''}
       />
       <PerformanceMonitor />
+      <PerformanceOptimizer />
       
       <Header 
         currentLanguage={currentLanguage}

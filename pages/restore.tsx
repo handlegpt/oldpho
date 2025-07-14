@@ -97,7 +97,18 @@ const Home: NextPage = () => {
     ): Promise<UploadWidgetOnPreUploadResult | undefined> => {
       performanceMonitor.startTimer('upload_check');
       
-      // 简化检查，移除 NSFW 检查
+      // 检查文件大小
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        const errorDetails = getErrorDetails(
+          new Error('File too large'), 
+          currentLanguage
+        );
+        setError(errorDetails);
+        return { errorMessage: errorDetails.userMessage };
+      }
+
+      // 检查剩余次数
       if (data?.remainingGenerations === 0) {
         const errorDetails = getErrorDetails(
           new Error('Rate limit exceeded'), 
