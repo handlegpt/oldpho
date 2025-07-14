@@ -197,11 +197,11 @@ const PerformanceOptimizer: React.FC = () => {
       const buttons = document.querySelectorAll('button, [role="button"]');
       buttons.forEach(button => {
         button.addEventListener('touchstart', () => {
-          button.style.transform = 'scale(0.98)';
+          (button as HTMLElement).style.transform = 'scale(0.98)';
         }, { passive: true });
         
         button.addEventListener('touchend', () => {
-          button.style.transform = '';
+          (button as HTMLElement).style.transform = '';
         }, { passive: true });
       });
     };

@@ -108,8 +108,6 @@ const nextConfig = {
   },
   // 压缩配置
   compress: true,
-  // 生产环境优化
-  swcMinify: true,
   // 输出配置
   output: 'standalone',
   // 添加环境变量
