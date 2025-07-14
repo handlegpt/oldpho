@@ -5,11 +5,6 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // 启用实验性功能
-  experimental: {
-    optimizeCss: true,
-    optimizePackageImports: ['@headlessui/react', 'react-loader-spinner'],
-  },
   images: {
     domains: ["upcdn.io", "replicate.delivery", "lh3.googleusercontent.com"],
     unoptimized: true,
