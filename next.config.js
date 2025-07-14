@@ -25,13 +25,6 @@ const nextConfig = {
 
   // Webpack配置优化
   webpack: (config, { dev, isServer }) => {
-    // 优化React模块解析
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'react': require.resolve('react'),
-      'react-dom': require.resolve('react-dom'),
-    };
-
     // 生产环境优化
     if (!dev && !isServer) {
       // 分离vendor包
