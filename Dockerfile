@@ -15,7 +15,7 @@ RUN npm config set cache /tmp/npm-cache
 COPY package*.json ./
 
 # 安装依赖（使用缓存）
-RUN npm ci --prefer-offline --no-audit
+RUN npm install --prefer-offline --no-audit
 
 # 复制源代码
 COPY . .
@@ -46,7 +46,7 @@ RUN npm config set registry https://registry.npmmirror.com/
 COPY package*.json ./
 
 # 只安装生产依赖
-RUN npm ci --omit=dev --prefer-offline --no-audit && npm cache clean --force
+RUN npm install --omit=dev --prefer-offline --no-audit && npm cache clean --force
 
 # 复制构建产物
 COPY --from=builder /app/.next/standalone ./
