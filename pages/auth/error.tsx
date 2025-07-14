@@ -18,14 +18,14 @@ export default function AuthError() {
   const getErrorMessage = (errorCode: string) => {
     switch (errorCode) {
       case 'Configuration':
-        return '認證配置錯誤，請聯絡管理員';
+        return 'Authentication configuration error, please contact administrator';
       case 'AccessDenied':
-        return '存取被拒絕，請檢查您的權限';
+        return 'Access denied, please check your permissions';
       case 'Verification':
-        return '驗證失敗，請重新嘗試';
+        return 'Verification failed, please try again';
       case 'Default':
       default:
-        return '認證過程中發生錯誤，請重新嘗試';
+        return 'An error occurred during authentication, please try again';
     }
   };
 
@@ -48,8 +48,8 @@ export default function AuthError() {
   return (
     <>
       <Head>
-        <title>認證錯誤 - OldPho</title>
-        <meta name="description" content="認證過程中發生錯誤" />
+        <title>Authentication Error - OldPho</title>
+        <meta name="description" content="An error occurred during authentication" />
       </Head>
       
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -61,7 +61,7 @@ export default function AuthError() {
               </svg>
             </div>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              認證錯誤
+              Authentication Error
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
               {getErrorMessage(error)}
@@ -78,16 +78,16 @@ export default function AuthError() {
                 </div>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-red-800">
-                    錯誤代碼: {error || 'Unknown'}
+                    Error Code: {error || 'Unknown'}
                   </h3>
                   <div className="mt-2 text-sm text-red-700">
                     <p>
-                      如果您持續遇到此問題，請：
+                      If you continue to experience this issue, please:
                     </p>
                     <ul className="list-disc list-inside mt-1">
-                      <li>清除瀏覽器快取和 Cookie</li>
-                      <li>嘗試使用無痕模式</li>
-                      <li>聯絡客服支援</li>
+                      <li>Clear browser cache and cookies</li>
+                      <li>Try using incognito mode</li>
+                      <li>Contact customer support</li>
                     </ul>
                   </div>
                 </div>
@@ -99,13 +99,13 @@ export default function AuthError() {
                 onClick={handleRetry}
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                重新嘗試
+                Try Again
               </button>
               <button
                 onClick={handleGoHome}
                 className="group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                返回首頁
+                Go Home
               </button>
             </div>
           </div>

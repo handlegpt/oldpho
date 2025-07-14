@@ -28,18 +28,18 @@ const LoginButton: React.FC<LoginButtonProps> = ({
       if (result?.error) {
         console.error('Sign in error:', result.error);
         
-        // 根据错误类型提供不同的处理
+        // Handle different error types
         if (result.error === 'Configuration') {
-          onError?.('認證配置錯誤，請聯絡管理員');
+          onError?.('Authentication configuration error, please contact administrator');
         } else if (result.error === 'AccessDenied') {
-          onError?.('存取被拒絕，請檢查您的權限');
+          onError?.('Access denied, please check your permissions');
         } else if (result.error === 'Verification') {
-          onError?.('驗證失敗，請重新嘗試');
+          onError?.('Verification failed, please try again');
         } else {
-          onError?.('登入過程中發生錯誤，請重新嘗試');
+          onError?.('An error occurred during login, please try again');
         }
         
-        // 如果重试次数少于3次，自动重试
+        // Auto retry if retry count is less than 3
         if (retryCount < 3) {
           setTimeout(() => {
             setRetryCount(prev => prev + 1);
@@ -47,12 +47,12 @@ const LoginButton: React.FC<LoginButtonProps> = ({
           }, 2000);
         }
       } else if (result?.url) {
-        // 登录成功，重定向
+        // Login successful, redirect
         window.location.href = result.url;
       }
     } catch (error) {
       console.error('Sign in exception:', error);
-      onError?.('登入過程中發生錯誤，請重新嘗試');
+      onError?.('An error occurred during login, please try again');
     } finally {
       setIsLoading(false);
     }
