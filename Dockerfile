@@ -10,7 +10,6 @@ WORKDIR /app
 # 设置npm镜像源以提高下载速度
 RUN npm config set registry https://registry.npmmirror.com/
 RUN npm config set cache /tmp/npm-cache
-RUN npm config set timeout 600000
 
 # 设置环境变量跳过 puppeteer Chrome 下载
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
@@ -46,7 +45,6 @@ RUN adduser --system --uid 1001 nextjs
 
 # 设置npm镜像源
 RUN npm config set registry https://registry.npmmirror.com/
-RUN npm config set timeout 600000
 
 # 设置环境变量跳过 puppeteer Chrome 下载
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
