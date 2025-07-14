@@ -7,11 +7,15 @@ RUN apk add --no-cache openssl
 # 设置工作目录
 WORKDIR /app
 
+# 设置npm镜像源以提高下载速度
+RUN npm config set registry https://registry.npmmirror.com/
+RUN npm config set cache /tmp/npm-cache
+
 # 复制 package.json 和 package-lock.json
 COPY package*.json ./
 
-# 先运行 npm install 来更新 lock 文件，然后运行 npm ci
-RUN npm install && npm ci
+# 安装依赖（使用缓存）
+RUN npm ci --prefer-offline --no-audit
 
 # 复制源代码
 COPY . .
@@ -35,11 +39,14 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# 设置npm镜像源
+RUN npm config set registry https://registry.npmmirror.com/
+
 # 复制 package.json
 COPY package*.json ./
 
-# 先运行 npm install 来更新 lock 文件，然后只安装生产依赖
-RUN npm install && npm ci --omit=dev && npm cache clean --force
+# 只安装生产依赖
+RUN npm ci --omit=dev --prefer-offline --no-audit && npm cache clean --force
 
 # 复制构建产物
 COPY --from=builder /app/.next/standalone ./
