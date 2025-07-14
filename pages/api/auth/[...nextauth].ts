@@ -27,30 +27,27 @@ export const authOptions: NextAuthOptions = {
   
   // 回调函数
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
+    async signIn({ user, account, profile, email, credentials }: any) {
       console.log('SignIn callback:', { user: user?.email, account: account?.provider });
       return true;
     },
-    async session({ session, user, token }) {
+    async session({ session, user, token }: any) {
       console.log('Session callback:', { user: user?.email, token: token?.email });
       return session;
     },
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account, profile }: any) {
       console.log('JWT callback:', { user: user?.email, account: account?.provider });
       return token;
     },
   },
   
-  // 错误处理
+  // 事件处理
   events: {
-    async signIn(message) {
+    async signIn(message: any) {
       console.log('SignIn event:', message);
     },
-    async signOut(message) {
+    async signOut(message: any) {
       console.log('SignOut event:', message);
-    },
-    async error(message) {
-      console.error('Auth error:', message);
     },
   },
   
