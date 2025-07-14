@@ -32,7 +32,7 @@ const Subscription: NextPage = () => {
     }
 
     try {
-      // 这里集成支付系统，比如Stripe
+      // Integrate payment system here, such as Stripe
       setToast({
         type: 'success',
         message: currentLanguage === 'zh-TW' 
@@ -42,7 +42,7 @@ const Subscription: NextPage = () => {
           : 'Redirecting to payment...'
       });
 
-      // 模拟支付流程
+      // Simulate payment process
       setTimeout(() => {
         setToast({
           type: 'success',

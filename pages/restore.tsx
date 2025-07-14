@@ -52,7 +52,7 @@ const Home: NextPage = () => {
 
   const t = translations[currentLanguage];
 
-  // 初始化处理管理器
+  // Initialize processing manager
   const processingManager = new ProcessingManager({
     language: currentLanguage,
     enableErrorTracking: true,
@@ -60,7 +60,7 @@ const Home: NextPage = () => {
     retryDelay: 2000
   });
 
-  // 进度追踪器
+  // Progress tracker
   const progressTracker = new ProgressTracker((progress, message) => {
     setProgress(progress);
     setProgressMessage(message);
@@ -68,11 +68,11 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     setIsClient(true);
-    // 从本地存储加载语言设置
+    // Load language settings from local storage
     const storedLanguage = getStoredLanguage();
     setCurrentLanguage(storedLanguage);
     
-    // 更新处理管理器的语言设置
+    // Update processing manager language settings
     processingManager.updateOptions({ language: storedLanguage });
   }, []);
 
@@ -99,7 +99,7 @@ const Home: NextPage = () => {
     ): Promise<UploadWidgetOnPreUploadResult | undefined> => {
       performanceMonitor.startTimer('upload_check');
       
-      // 检查文件大小
+      // Check file size
       const maxSize = 10 * 1024 * 1024; // 10MB
       if (file.size > maxSize) {
         const errorDetails = getErrorDetails(
@@ -110,7 +110,7 @@ const Home: NextPage = () => {
         return { errorMessage: errorDetails.userMessage };
       }
 
-      // 检查剩余次数
+      // Check remaining generations
       if (data?.remainingGenerations === 0) {
         const errorDetails = getErrorDetails(
           new Error('Rate limit exceeded'), 
@@ -157,7 +157,7 @@ const Home: NextPage = () => {
 
   async function generatePhoto(fileUrl: string) {
     performanceMonitor.startTimer('photo_generation');
-    progressTracker.startAutoProgress(120000); // 2分钟预估时间
+    progressTracker.startAutoProgress(120000); // 2 minutes estimated time
     
     await new Promise((resolve) => setTimeout(resolve, 500));
     setLoading(true);
@@ -195,7 +195,7 @@ const Home: NextPage = () => {
       setRestoredImage(result.imageUrl);
       setHasWatermark(!!result.hasWatermark);
       setRestoredLoaded(true);
-      progressTracker.update(100, '处理完成');
+      progressTracker.update(100, 'Processing complete');
       
     } catch (err) {
       const errorDetails = getErrorDetails(err, currentLanguage);

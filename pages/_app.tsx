@@ -9,18 +9,18 @@ import Head from 'next/head';
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   const [isClient, setIsClient] = useState(false);
 
-  // 全局错误处理
+  // Global error handling
   useEffect(() => {
     setIsClient(true);
     
     const handleError = (error: ErrorEvent) => {
       console.error('Global error:', error);
-      // 这里可以添加错误上报逻辑
+      // Add error reporting logic here
     };
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       console.error('Unhandled promise rejection:', event.reason);
-      // 这里可以添加错误上报逻辑
+      // Add error reporting logic here
     };
 
     window.addEventListener('error', handleError);
@@ -32,11 +32,11 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
     };
   }, []);
 
-  // PWA 安装提示 - 延迟加载
+  // PWA install prompt - lazy load
   useEffect(() => {
     if (!isClient) return;
 
-    // 延迟加载 Service Worker
+    // Lazy load Service Worker
     const loadServiceWorker = async () => {
       if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
         try {
@@ -48,21 +48,21 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
       }
     };
 
-    // 延迟1秒后加载Service Worker
+    // Load Service Worker after 1 second delay
     const timer = setTimeout(loadServiceWorker, 1000);
     return () => clearTimeout(timer);
   }, [isClient]);
 
-  // 性能监控
+  // Performance monitoring
   useEffect(() => {
     if (!isClient) return;
 
-    // 监控页面加载性能
+    // Monitor page load performance
     const observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         if (entry.entryType === 'navigation') {
           const navEntry = entry as PerformanceNavigationTiming;
-          console.log('页面加载时间:', {
+          console.log('Page load time:', {
             domContentLoaded: navEntry.domContentLoadedEventEnd - navEntry.domContentLoadedEventStart,
             loadComplete: navEntry.loadEventEnd - navEntry.loadEventStart,
             total: navEntry.loadEventEnd - navEntry.fetchStart
@@ -79,7 +79,7 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
     <ErrorBoundary>
       <Head>
-        {/* PWA 相关元标签 */}
+        {/* PWA related meta tags */}
         <meta name="application-name" content="OldPho" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -89,19 +89,19 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#3b82f6" />
 
-        {/* PWA 图标 */}
+        {/* PWA icons */}
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/icon-16x16.png" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="shortcut icon" href="/favicon.ico" />
 
-        {/* 预加载关键资源 */}
+        {/* Preload critical resources */}
         <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="//upcdn.io" />
         <link rel="dns-prefetch" href="//replicate.delivery" />
         
-        {/* 性能优化 */}
+        {/* Performance optimization */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://upcdn.io" />

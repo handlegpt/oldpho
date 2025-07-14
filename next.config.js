@@ -1,11 +1,11 @@
-// 条件性地使用 bundle analyzer
+// Conditionally use bundle analyzer
 const withBundleAnalyzer = process.env.ANALYZE === 'true' 
   ? require('@next/bundle-analyzer')({ enabled: true })
   : (config) => config;
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 图片优化配置
+  // Image optimization configuration
   images: {
     domains: [
       'replicate.delivery',
@@ -18,16 +18,16 @@ const nextConfig = {
     formats: ['image/webp', 'image/avif'],
   },
 
-  // 实验性功能
+  // Experimental features
   experimental: {
     scrollRestoration: true,
   },
 
-  // Webpack配置优化
+  // Webpack configuration optimization
   webpack: (config, { dev, isServer }) => {
-    // 生产环境优化
+    // Production environment optimization
     if (!dev && !isServer) {
-      // 分离vendor包
+      // Separate vendor bundles
       config.optimization.splitChunks = {
         chunks: 'all',
         cacheGroups: {
@@ -45,11 +45,11 @@ const nextConfig = {
         },
       };
 
-      // 压缩配置
+      // Compression configuration
       config.optimization.minimize = true;
     }
 
-    // 处理TensorFlow.js
+    // Handle TensorFlow.js
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
@@ -60,13 +60,13 @@ const nextConfig = {
     return config;
   },
 
-  // 压缩配置
+  // Compression configuration
   compress: true,
 
-  // 输出配置
+  // Output configuration
   output: 'standalone',
 
-  // 重定向配置
+  // Redirect configuration
   async redirects() {
     return [
       {
@@ -77,7 +77,7 @@ const nextConfig = {
     ];
   },
 
-  // 头部配置
+  // Headers configuration
   async headers() {
     return [
       {
@@ -121,16 +121,16 @@ const nextConfig = {
     ];
   },
 
-  // 环境变量
+  // Environment variables
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
 
-  // 页面优化
+  // Page optimization
   onDemandEntries: {
-    // 页面在内存中保持的时间（毫秒）
+    // Time pages stay in memory (milliseconds)
     maxInactiveAge: 25 * 1000,
-    // 同时保持的页面数量
+    // Number of pages to keep simultaneously
     pagesBufferLength: 2,
   },
 };

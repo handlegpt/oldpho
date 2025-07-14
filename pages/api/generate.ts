@@ -166,7 +166,7 @@ export default async function handler(
       return res.status(408).json('Image restoration timed out');
     }
 
-    // 根据用户订阅计划决定是否添加水印
+    // Add watermark based on user subscription plan
     const responseData = {
       imageUrl: restoredImage,
       hasWatermark: isFreeUser,

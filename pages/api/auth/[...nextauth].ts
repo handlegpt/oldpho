@@ -11,21 +11,21 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
     }),
   ],
-  // 调试模式
+  // Debug mode
   debug: process.env.NODE_ENV === 'development',
   
-  // 会话配置
+  // Session configuration
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   
-  // JWT 配置
+  // JWT configuration
   jwt: {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   
-  // 回调函数
+  // Callback functions
   callbacks: {
     async signIn({ user, account, profile, email, credentials }: any) {
       console.log('SignIn callback:', { user: user?.email, account: account?.provider });
@@ -41,7 +41,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   
-  // 事件处理
+  // Event handlers
   events: {
     async signIn(message: any) {
       console.log('SignIn event:', message);
@@ -51,7 +51,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   
-  // 页面配置
+  // Page configuration
   pages: {
     signIn: '/auth/signin',
     signOut: '/auth/signout',
