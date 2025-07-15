@@ -1,11 +1,17 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
+import EmailProvider from 'next-auth/providers/email';
 
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+    }),
+    EmailProvider({
+      server: process.env.EMAIL_SERVER,
+      from: process.env.EMAIL_FROM,
+      maxAge: 24 * 60 * 60, // 链接有效期24小时
     }),
   ],
   // Debug mode
@@ -66,6 +72,4 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-export default NextAuth({
-  ...authOptions,
-});
+export default NextAuth(authOptions);
