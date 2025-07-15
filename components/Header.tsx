@@ -21,7 +21,7 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
   };
 
   return (
-    <header className='flex justify-between items-center w-full mt-3 sm:mt-5 border-b-2 pb-4 sm:pb-7 px-2 sm:px-4'>
+    <header className='flex justify-between items-center w-full mt-3 sm:mt-5 border-b-2 pb-4 sm:pb-7 px-4 sm:px-6 lg:px-8'>
       <Link href='/' className='flex space-x-2 items-center'>
         <Image
           alt='header text'
@@ -35,7 +35,7 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
         </h1>
       </Link>
       
-      <div className='flex items-center space-x-2 sm:space-x-4'>
+      <div className='flex items-center space-x-3 sm:space-x-6'>
         <LanguageSelector 
           currentLanguage={currentLanguage}
           onLanguageChange={onLanguageChange}
@@ -49,22 +49,22 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
             height={28}
           />
         ) : (
-          <div className='flex space-x-3 sm:space-x-6'>
+          <div className='flex space-x-4 sm:space-x-8 lg:space-x-10'>
             <Link
               href='/'
-              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[32px] sm:min-h-[40px]'
+              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[32px] sm:min-h-[40px] px-2'
             >
               <p className='font-medium text-sm sm:text-base'>{t.navigation.home}</p>
             </Link>
             <button
               onClick={handleRestoreClick}
-              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[32px] sm:min-h-[40px]'
+              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[32px] sm:min-h-[40px] px-2'
             >
               <p className='font-medium text-sm sm:text-base'>{t.navigation.restore}</p>
             </button>
             <Link
               href='/pricing'
-              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[32px] sm:min-h-[40px]'
+              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[32px] sm:min-h-[40px] px-2'
             >
               <p className='font-medium text-sm sm:text-base'>
                 {currentLanguage === 'zh-TW' ? '价格' : currentLanguage === 'ja' ? '料金' : 'Pricing'}
