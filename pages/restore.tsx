@@ -361,6 +361,12 @@ const Home: NextPage = () => {
                       </span>{' '}
                       {currentLanguage === 'zh-TW' ? '剩余。您的配额将在' : currentLanguage === 'ja' ? 'が残っています。クォータは' : 'left this month. Your generations will renew in'}{' '}
                       <span className='font-semibold text-green-900'>
+                        {data.days > 0 && (
+                          <>
+                            {data.days} {currentLanguage === 'zh-TW' ? '天' : currentLanguage === 'ja' ? '日' : 'days'}{' '}
+                            {currentLanguage === 'zh-TW' ? '和' : currentLanguage === 'ja' ? 'と' : 'and'}{' '}
+                          </>
+                        )}
                         {data.hours} {currentLanguage === 'zh-TW' ? '小时' : currentLanguage === 'ja' ? '時間' : 'hours'} {currentLanguage === 'zh-TW' ? '和' : currentLanguage === 'ja' ? 'と' : 'and'} {data.minutes} {currentLanguage === 'zh-TW' ? '分钟' : currentLanguage === 'ja' ? '分' : 'minutes'}
                       </span>{' '}
                       {currentLanguage === 'zh-TW' ? '后重置。' : currentLanguage === 'ja' ? '後にリセットされます。' : '.'}
@@ -389,14 +395,14 @@ const Home: NextPage = () => {
                 <UploadDropZone />
               ) : (
                 <div className='flex flex-col items-center justify-center w-full max-w-4xl'>
-                  <div className='flex flex-col sm:flex-row gap-8 items-center justify-center w-full'>
+                  <div className='flex flex-col sm:flex-row gap-4 sm:gap-8 items-center justify-center w-full'>
                     <div className='flex flex-col items-center justify-center'>
                       <h3 className='mb-4 font-semibold text-lg text-slate-700'>{t.original}</h3>
-                      <AnimatedCard className='p-4'>
+                      <AnimatedCard className='p-2 sm:p-4'>
                         <Image
                           alt='original photo'
                           src={originalPhoto}
-                          className='rounded-lg'
+                          className='rounded-lg max-w-[300px] sm:max-w-[400px] w-full h-auto'
                           width={400}
                           height={400}
                         />
@@ -416,11 +422,11 @@ const Home: NextPage = () => {
                     {restoredImage && !loading && (
                       <div className='flex flex-col items-center justify-center'>
                         <h3 className='mb-4 font-semibold text-lg text-slate-700'>{t.restored}</h3>
-                        <AnimatedCard className='p-4'>
+                        <AnimatedCard className='p-2 sm:p-4'>
                           <Image
                             alt='restored photo'
                             src={restoredImage}
-                            className='rounded-lg'
+                            className='rounded-lg max-w-[300px] sm:max-w-[400px] w-full h-auto'
                             width={400}
                             height={400}
                           />
@@ -433,18 +439,18 @@ const Home: NextPage = () => {
                     <div className='flex flex-col sm:flex-row gap-4 mt-8'>
                       <button
                         onClick={handleDownload}
-                        className='bg-black rounded-xl text-white font-medium px-8 py-4 hover:bg-black/80 transition-colors duration-150 transform hover:scale-105 shadow-lg hover:shadow-xl active:scale-95'
+                        className='bg-black rounded-xl text-white font-medium px-6 sm:px-8 py-4 sm:py-4 hover:bg-black/80 transition-colors duration-150 transform hover:scale-105 shadow-lg hover:shadow-xl active:scale-95 min-h-[48px] touch-manipulation'
                       >
                         {t.download}
                       </button>
                       <ShareButton
                         onClick={handleShare}
                         currentLanguage={currentLanguage}
-                        className="flex-1"
+                        className="flex-1 min-h-[48px] touch-manipulation"
                       />
                       <button
                         onClick={resetState}
-                        className='bg-white border-2 border-gray-200 rounded-xl text-gray-700 font-medium px-8 py-4 hover:bg-gray-50 transition-colors duration-150 transform hover:scale-105 shadow-lg hover:shadow-xl active:scale-95'
+                        className='bg-white border-2 border-gray-200 rounded-xl text-gray-700 font-medium px-6 sm:px-8 py-4 sm:py-4 hover:bg-gray-50 transition-colors duration-150 transform hover:scale-105 shadow-lg hover:shadow-xl active:scale-95 min-h-[48px] touch-manipulation'
                       >
                         {t.reset}
                       </button>

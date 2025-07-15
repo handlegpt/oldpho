@@ -24,7 +24,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+        className="flex items-center space-x-2 px-3 py-3 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 transition-colors min-h-[44px] touch-manipulation"
       >
         <span className="text-lg">{currentLang?.flag}</span>
         <span className="text-sm font-medium text-gray-700">{currentLang?.name}</span>
@@ -47,7 +47,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
                 onLanguageChange(language.code as Language);
                 setIsOpen(false);
               }}
-              className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
+              className={`w-full flex items-center space-x-3 px-4 py-4 text-left hover:bg-gray-50 transition-colors min-h-[48px] touch-manipulation ${
                 currentLanguage === language.code ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
               }`}
             >

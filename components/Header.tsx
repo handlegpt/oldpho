@@ -45,7 +45,7 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
 
   return (
     <header className='flex justify-between items-center w-full border-b-2 pt-4 sm:pt-6 pb-4 sm:pb-7 px-4 sm:px-6 lg:px-8'>
-      <Link href='/' className='flex space-x-2 items-center'>
+      <Link href='/' className='flex space-x-2 items-center min-h-[44px] touch-manipulation'>
         <Image
           alt='header text'
           src='/imageIcon.png'
@@ -69,7 +69,7 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity min-h-[44px] px-2 touch-manipulation"
             >
               <Image
                 alt='Profile picture'
@@ -92,27 +92,27 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
             </button>
             
             {isMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                <div className="px-4 py-2 text-sm text-gray-500 border-b border-gray-100">
+              <div className="absolute right-0 mt-2 w-48 sm:w-56 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                <div className="px-4 py-3 text-sm text-gray-500 border-b border-gray-100">
                   {session.user.email}
                 </div>
                 <Link
                   href="/restore"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors touch-manipulation"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {t.navigation.restore}
                 </Link>
                 <Link
                   href="/pricing"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors touch-manipulation"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {currentLanguage === 'zh-TW' ? '价格' : currentLanguage === 'ja' ? '料金' : 'Pricing'}
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  className="block w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors touch-manipulation"
                 >
                   {currentLanguage === 'zh-TW' ? '退出登录' : currentLanguage === 'ja' ? 'ログアウト' : 'Sign Out'}
                 </button>
@@ -121,22 +121,22 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
           </div>
         ) : (
           // User is not logged in - show navigation links
-          <div className='flex space-x-4 sm:space-x-8 lg:space-x-10'>
+          <div className='flex space-x-2 sm:space-x-4 lg:space-x-8'>
             <Link
               href='/'
-              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[32px] sm:min-h-[40px] px-2'
+              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[44px] px-3 sm:px-4'
             >
               <p className='font-medium text-sm sm:text-base'>{t.navigation.home}</p>
             </Link>
             <button
               onClick={handleRestoreClick}
-              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[32px] sm:min-h-[40px] px-2'
+              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[44px] px-3 sm:px-4'
             >
               <p className='font-medium text-sm sm:text-base'>{t.navigation.restore}</p>
             </button>
             <Link
               href='/pricing'
-              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[32px] sm:min-h-[40px] px-2'
+              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[44px] px-3 sm:px-4'
             >
               <p className='font-medium text-sm sm:text-base'>
                 {currentLanguage === 'zh-TW' ? '价格' : currentLanguage === 'ja' ? '料金' : 'Pricing'}
