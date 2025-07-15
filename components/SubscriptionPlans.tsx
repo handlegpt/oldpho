@@ -70,28 +70,6 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({
     }
   ];
 
-  if (!session) {
-    return (
-      <div className="w-full max-w-6xl mx-auto p-6">
-        <AnimatedCard className="bg-yellow-50 border-yellow-200 p-8">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-yellow-900 mb-4">
-              {currentLanguage === 'zh-TW' ? '请先登录' : currentLanguage === 'ja' ? 'ログインしてください' : 'Please login first'}
-            </h2>
-            <p className="text-yellow-700">
-              {currentLanguage === 'zh-TW' 
-                ? '登录后查看订阅计划' 
-                : currentLanguage === 'ja' 
-                ? 'ログイン後にサブスクリプションプランを表示'
-                : 'Login to view subscription plans'
-              }
-            </p>
-          </div>
-        </AnimatedCard>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full max-w-6xl mx-auto p-6">
       <div className="text-center mb-12">

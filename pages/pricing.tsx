@@ -8,7 +8,7 @@ import Toast from '../components/Toast';
 import { Language } from '../types/language';
 
 const Pricing: NextPage = () => {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -21,10 +21,10 @@ const Pricing: NextPage = () => {
       setToast({
         type: 'error',
         message: currentLanguage === 'zh-TW' 
-          ? '请先登录' 
+          ? '请先登录以订阅计划' 
           : currentLanguage === 'ja' 
-          ? 'ログインしてください'
-          : 'Please login first'
+          ? 'プランを購読するにはログインしてください'
+          : 'Please login to subscribe to a plan'
       });
       return;
     }
@@ -63,14 +63,6 @@ const Pricing: NextPage = () => {
       });
     }
   };
-
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
