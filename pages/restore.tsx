@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 import LoginButton from '../components/LoginButton';
 import ShareButton from '../components/ShareButton';
 import LanguageSelector from '../components/LanguageSelector';
-import { useTranslations } from '../utils/translations';
+import { translations, Language } from '../utils/translations';
 
 export default function Restore() {
   const { data: session, status } = useSession();
@@ -13,8 +13,10 @@ export default function Restore() {
   const [restoredImage, setRestoredImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
+  const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { t, currentLanguage } = useTranslations();
+  
+  const t = translations[currentLanguage];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -45,7 +47,7 @@ export default function Restore() {
       // For demo purposes, use the uploaded image as restored
       setRestoredImage(uploadedImage);
     } catch (err) {
-      setError(t('restoreError'));
+      setError('Restore failed. Please try again.');
     } finally {
       setIsUploading(false);
     }
@@ -64,8 +66,8 @@ export default function Restore() {
   return (
     <>
       <Head>
-        <title>{t('restoreTitle')} - OldPho</title>
-        <meta name="description" content={t('restoreDescription')} />
+        <title>{t.title} - OldPho</title>
+        <meta name="description" content={t.description} />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -79,13 +81,13 @@ export default function Restore() {
                 </a>
                 <nav className="hidden md:flex space-x-8">
                   <a href="/" className="text-gray-600 hover:text-gray-900 transition-colors duration-150">
-                    {t('home')}
+                    {t.navigation.home}
                   </a>
                   <a href="/restore" className="text-blue-600 font-medium">
-                    {t('restore')}
+                    {t.navigation.restore}
                   </a>
                   <a href="/pricing" className="text-gray-600 hover:text-gray-900 transition-colors duration-150">
-                    {t('pricing')}
+                    Pricing
                   </a>
                 </nav>
               </div>
@@ -101,10 +103,10 @@ export default function Restore() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              {t('restoreTitle')}
+              {t.title}
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              {t('restoreDescription')}
+              {t.description}
             </p>
           </div>
 
@@ -124,10 +126,10 @@ export default function Restore() {
                   htmlFor="file-upload"
                   className="cursor-pointer inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150"
                 >
-                  {t('selectImage')}
+                  Select Image
                 </label>
                 <p className="mt-2 text-sm text-gray-500">
-                  {t('supportedFormats')}
+                  Supported formats: JPEG, PNG, JPG
                 </p>
               </div>
 
@@ -146,13 +148,13 @@ export default function Restore() {
                       disabled={isUploading}
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                     >
-                      {isUploading ? t('restoring') : t('restoreImage')}
+                      {isUploading ? 'Restoring...' : 'Restore Image'}
                     </button>
                     <button
                       onClick={handleReset}
                       className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150"
                     >
-                      {t('reset')}
+                      {t.reset}
                     </button>
                   </div>
                 </div>
@@ -167,7 +169,7 @@ export default function Restore() {
                     ></div>
                   </div>
                   <p className="text-center text-sm text-gray-600 mt-2">
-                    {t('processing')} {progress}%
+                    {t.processing} {progress}%
                   </p>
                 </div>
               )}
@@ -183,7 +185,7 @@ export default function Restore() {
             {restoredImage && (
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
-                  {t('restoredImage')}
+                  Restored Image
                 </h2>
                 <div className="flex justify-center">
                   <img
@@ -195,7 +197,7 @@ export default function Restore() {
                 <div className="mt-4 flex justify-center">
                   <ShareButton
                     imageUrl={restoredImage}
-                    title={t('restoredImage')}
+                    title="Restored Image"
                     currentLanguage={currentLanguage}
                   />
                 </div>

@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 export type Language = 'en' | 'zh-TW' | 'ja';
 
 export interface Translations {
@@ -592,4 +594,26 @@ export const translations: Record<Language, Translations> = {
       startRestoring: '復元開始'
     }
   }
+};
+
+// Hook for using translations
+export const useTranslations = () => {
+  const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
+  
+  const t = (key: string) => {
+    const keys = key.split('.');
+    let value: any = translations[currentLanguage as Language];
+    
+    for (const k of keys) {
+      if (value && typeof value === 'object' && k in value) {
+        value = value[k];
+      } else {
+        return key; // Return key if translation not found
+      }
+    }
+    
+    return typeof value === 'string' ? value : key;
+  };
+  
+  return { t, currentLanguage, setCurrentLanguage };
 }; 
