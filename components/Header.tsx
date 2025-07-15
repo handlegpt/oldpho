@@ -21,7 +21,7 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
   };
 
   return (
-    <header className='flex justify-between items-center w-full mt-3 sm:mt-5 border-b-2 pb-4 sm:pb-7 px-4 sm:px-6 lg:px-8'>
+    <header className='flex justify-between items-center w-full border-b-2 pb-4 sm:pb-7 px-4 sm:px-6 lg:px-8'>
       <Link href='/' className='flex space-x-2 items-center'>
         <Image
           alt='header text'
