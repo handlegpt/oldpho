@@ -35,6 +35,15 @@ export default async function handler(
     const bucketStartTime = bucket * windowDuration;
     const nextResetTime = bucketStartTime + windowDuration;
 
+    // Debug information
+    console.log('Time calculation debug:', {
+      now: new Date(now).toISOString(),
+      bucket,
+      bucketStartTime: new Date(bucketStartTime).toISOString(),
+      nextResetTime: new Date(nextResetTime).toISOString(),
+      windowDuration: windowDuration / (1000 * 60 * 60 * 24) + ' days'
+    });
+
     let usedGenerations = 0;
     
     if (redis && rateLimit !== -1) {
@@ -54,6 +63,14 @@ export default async function handler(
     const days = Math.floor(timeUntilReset / (1000 * 60 * 60 * 24));
     const hours = Math.floor((timeUntilReset % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((timeUntilReset % (1000 * 60 * 60)) / (1000 * 60));
+
+    // Debug time calculation
+    console.log('Time until reset:', {
+      timeUntilReset: timeUntilReset / (1000 * 60 * 60 * 24) + ' days',
+      days,
+      hours,
+      minutes
+    });
 
     const remainingGenerations = rateLimit === -1 ? -1 : Math.max(0, rateLimit - Number(usedGenerations));
 
