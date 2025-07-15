@@ -35,7 +35,7 @@ export default async function handler(
   try {
     // For now, provide fallback behavior without database
     // This ensures the app works even without Prisma setup
-    const rateLimit = 5; // Free plan default
+    const rateLimit: number = 5; // Free plan default
     const isFreeUser = true;
 
     // Rate Limiting by user email
