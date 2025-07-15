@@ -298,7 +298,7 @@ const Home: NextPage = () => {
   };
 
   return (
-    <div className='flex max-w-7xl mx-auto flex-col items-center justify-center py-2 min-h-screen'>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <Head>
         <title>Restore Photo - OldPho</title>
         <meta name="description" content="Restore your old photos with AI technology" />
@@ -307,7 +307,7 @@ const Home: NextPage = () => {
         currentLanguage={currentLanguage}
         onLanguageChange={handleLanguageChange}
       />
-      <main className='flex flex-1 w-full flex-col items-center justify-center text-center px-4 mt-20'>
+      <main className='flex flex-1 w-full flex-col items-center justify-center text-center px-4 pt-20 pb-16'>
         <div className='flex flex-col items-center justify-center w-full max-w-4xl'>
           <div className='flex flex-col items-center justify-center w-full max-w-2xl'>
             <h1 className='mx-auto max-w-4xl font-display text-2xl font-bold tracking-normal text-slate-900 sm:text-4xl mb-8'>
@@ -348,7 +348,7 @@ const Home: NextPage = () => {
                 </div>
               </AnimatedCard>
             </div>
-          ) : status === 'authenticated' ? (
+          ) : (
             <>
               {/* Show remaining generations if data is available */}
               {data && (
@@ -482,30 +482,6 @@ const Home: NextPage = () => {
                 </div>
               )}
             </>
-          ) : (
-            <div className="w-full max-w-2xl">
-              <AnimatedCard className="bg-yellow-50 border-yellow-200 p-8">
-                <div className="text-center">
-                  <h2 className="text-2xl font-bold text-yellow-900 mb-4">
-                    {currentLanguage === 'zh-TW' ? '无法获取用户信息' : currentLanguage === 'ja' ? 'ユーザー情報を取得できません' : 'Unable to get user info'}
-                  </h2>
-                  <p className="text-yellow-700 mb-6">
-                    {currentLanguage === 'zh-TW' 
-                      ? '请刷新页面或重新登录。' 
-                      : currentLanguage === 'ja' 
-                      ? 'ページを更新するか、再ログインしてください。'
-                      : 'Please refresh the page or log in again.'
-                    }
-                  </p>
-                  <button
-                    onClick={handleRefresh}
-                    className="bg-yellow-600 text-white rounded-xl font-semibold px-8 py-4 hover:bg-yellow-700 transition-all duration-300 transform hover:scale-105 shadow-lg active:scale-95"
-                  >
-                    {currentLanguage === 'zh-TW' ? '刷新页面' : currentLanguage === 'ja' ? 'ページを更新' : 'Refresh Page'}
-                  </button>
-                </div>
-              </AnimatedCard>
-            </div>
           )}
         </div>
       </main>
