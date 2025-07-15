@@ -43,6 +43,16 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
     await signOut({ callbackUrl: '/' });
   };
 
+  const handleDashboardClick = () => {
+    console.log('Dashboard clicked');
+    setIsMenuOpen(false);
+  };
+
+  const handleSettingsClick = () => {
+    console.log('Settings clicked');
+    setIsMenuOpen(false);
+  };
+
   return (
     <header className='flex justify-between items-center w-full border-b-2 pt-4 sm:pt-6 pb-4 sm:pb-7 px-4 sm:px-6 lg:px-8'>
       <Link href='/' className='flex space-x-2 items-center min-h-[44px] touch-manipulation'>
@@ -99,7 +109,7 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
                 <Link
                   href="/dashboard"
                   className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors touch-manipulation"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={handleDashboardClick}
                 >
                   {currentLanguage === 'zh-TW' ? '仪表板' : currentLanguage === 'ja' ? 'ダッシュボード' : 'Dashboard'}
                 </Link>
@@ -120,7 +130,7 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
                 <Link
                   href="/settings"
                   className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors touch-manipulation"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={handleSettingsClick}
                 >
                   {currentLanguage === 'zh-TW' ? '设置' : currentLanguage === 'ja' ? '設定' : 'Settings'}
                 </Link>
