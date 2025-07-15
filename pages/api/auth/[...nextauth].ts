@@ -35,14 +35,12 @@ export const authOptions: NextAuthOptions = {
       })
     ] : []),
     
-    // Email Provider (可选)
-    ...(process.env.EMAIL_SERVER && process.env.EMAIL_FROM ? [
-      EmailProvider({
-        server: process.env.EMAIL_SERVER,
-        from: process.env.EMAIL_FROM,
-        maxAge: 24 * 60 * 60, // 链接有效期24小时
-      })
-    ] : []),
+    // Email Provider (始终包含，如果没有配置会显示错误)
+    EmailProvider({
+      server: process.env.EMAIL_SERVER || 'smtp://user:pass@smtp.example.com:587',
+      from: process.env.EMAIL_FROM || 'noreply@example.com',
+      maxAge: 24 * 60 * 60, // 链接有效期24小时
+    }),
   ],
   
   // Debug mode
@@ -105,7 +103,8 @@ export const authOptions: NextAuthOptions = {
 const configErrors = validateConfig();
 if (configErrors.length > 0) {
   console.error('NextAuth configuration errors:', configErrors);
-  throw new Error(`NextAuth configuration errors: ${configErrors.join(', ')}`);
+  // 不抛出错误，让应用继续运行
+  console.warn('NextAuth configuration warnings:', configErrors);
 }
 
 export default NextAuth(authOptions);

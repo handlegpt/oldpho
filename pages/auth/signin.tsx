@@ -11,6 +11,7 @@ interface SignInProps {
 export default function SignIn({ providers }: SignInProps) {
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleGoogleSignIn = async () => {
@@ -29,10 +30,16 @@ export default function SignIn({ providers }: SignInProps) {
     if (!email) return;
 
     setIsLoading('email');
+    setEmailError(null);
+    
     try {
-      await signIn('email', { email, callbackUrl: '/' });
+      const result = await signIn('email', { email, callbackUrl: '/' });
+      if (result?.error) {
+        setEmailError('Email sign-in failed. Please check your email configuration.');
+      }
     } catch (error) {
       console.error('Email sign in error:', error);
+      setEmailError('Email sign-in failed. Please try again.');
     } finally {
       setIsLoading(null);
     }
@@ -89,51 +96,58 @@ export default function SignIn({ providers }: SignInProps) {
               </button>
             )}
 
-            {/* Email Sign In */}
-            {providers.email && (
-              <div className="mt-6">
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300" />
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-gray-50 text-gray-500">Or continue with email</span>
-                  </div>
+            {/* Email Sign In - 始终显示 */}
+            <div className="mt-6">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300" />
                 </div>
-
-                <form onSubmit={handleEmailSignIn} className="mt-6">
-                  <div>
-                    <label htmlFor="email" className="sr-only">
-                      Email address
-                    </label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                      placeholder="Enter your email"
-                    />
-                  </div>
-                  <div className="mt-4">
-                    <button
-                      type="submit"
-                      disabled={isLoading !== null || !email}
-                      className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isLoading === 'email' ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      ) : (
-                        'Send magic link'
-                      )}
-                    </button>
-                  </div>
-                </form>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-gray-50 text-gray-500">Or continue with email</span>
+                </div>
               </div>
-            )}
+
+              <form onSubmit={handleEmailSignIn} className="mt-6">
+                <div>
+                  <label htmlFor="email" className="sr-only">
+                    Email address
+                  </label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                    placeholder="Enter your email"
+                  />
+                </div>
+                <div className="mt-4">
+                  <button
+                    type="submit"
+                    disabled={isLoading !== null || !email}
+                    className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading === 'email' ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    ) : (
+                      'Send magic link'
+                    )}
+                  </button>
+                </div>
+                
+                {emailError && (
+                  <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-4">
+                    <p className="text-red-800 text-sm">{emailError}</p>
+                    <p className="text-red-600 text-xs mt-2">
+                      Note: Email sign-in requires proper SMTP configuration. Please contact support if you need help.
+                    </p>
+                  </div>
+                )}
+              </form>
+            </div>
           </div>
 
           <div className="text-center">
