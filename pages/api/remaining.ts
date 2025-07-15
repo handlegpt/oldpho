@@ -27,14 +27,21 @@ export default async function handler(
 
     // Query the redis database by email to get the number of generations left
     const identifier = session.user.email;
-    const windowDuration = 30 * 24 * 60 * 60 * 1000; // 30 days
-    const bucket = Math.floor(Date.now() / windowDuration);
+    
+    // Use the same 30-day window as in generate.ts
+    const windowDuration = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+    const now = Date.now();
+    const bucket = Math.floor(now / windowDuration);
+    const bucketStartTime = bucket * windowDuration;
+    const nextResetTime = bucketStartTime + windowDuration;
 
     let usedGenerations = 0;
     
     if (redis && rateLimit !== -1) {
       try {
-        usedGenerations = Number(await redis.get(`@upstash/ratelimit:${identifier!}:${bucket}`)) || 0;
+        // Use the same key format as Upstash Ratelimit
+        const key = `@upstash/ratelimit:${identifier!}:${bucket}`;
+        usedGenerations = Number(await redis.get(key)) || 0;
       } catch (error) {
         console.error('Redis error:', error);
         // Fallback to 0 if Redis fails
@@ -43,13 +50,10 @@ export default async function handler(
     }
 
     // Calculate remaining time until reset (30 days from bucket start)
-    const bucketStartTime = bucket * windowDuration;
-    const resetDate = new Date(bucketStartTime + windowDuration);
-    
-    const diff = Math.abs(resetDate.getTime() - new Date().getTime());
-    const days = Math.floor(diff / 1000 / 60 / 60 / 24);
-    const hours = Math.floor((diff / 1000 / 60 / 60) % 24);
-    const minutes = Math.floor((diff / 1000 / 60) % 60);
+    const timeUntilReset = nextResetTime - now;
+    const days = Math.floor(timeUntilReset / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeUntilReset % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((timeUntilReset % (1000 * 60 * 60)) / (1000 * 60));
 
     const remainingGenerations = rateLimit === -1 ? -1 : Math.max(0, rateLimit - Number(usedGenerations));
 

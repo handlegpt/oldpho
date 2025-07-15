@@ -51,17 +51,16 @@ export default async function handler(
       res.setHeader('X-RateLimit-Remaining', result.remaining);
 
       // Calculate the remaining time until generations are reset
-      const diff = Math.abs(
-        new Date(result.reset).getTime() - new Date().getTime()
-      );
-      const hours = Math.floor(diff / 1000 / 60 / 60);
-      const minutes = Math.floor(diff / 1000 / 60) - hours * 60;
+      const timeUntilReset = result.reset - Date.now();
+      const days = Math.floor(timeUntilReset / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((timeUntilReset % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((timeUntilReset % (1000 * 60 * 60)) / (1000 * 60));
 
       if (!result.success) {
         return res
           .status(429)
           .json(
-            `Your generations will renew in ${hours} hours and ${minutes} minutes. Please try again later.`
+            `Your generations will renew in ${days} days, ${hours} hours and ${minutes} minutes. Please try again later.`
           );
       }
     }
