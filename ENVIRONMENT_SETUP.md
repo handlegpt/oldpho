@@ -11,7 +11,12 @@ REPLICATE_API_KEY=your_replicate_api_key_here
 
 ### 2. NextAuth 配置
 ```bash
+# 开发环境
 NEXTAUTH_URL=http://localhost:3001
+
+# 生产环境（使用您的域名）
+NEXTAUTH_URL=https://yourdomain.com
+
 NEXTAUTH_SECRET=your_generated_secret_here
 ```
 - 生成 NEXTAUTH_SECRET：
@@ -28,9 +33,22 @@ GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 ```
 - 获取地址：https://console.cloud.google.com/apis/credentials
-- 重定向 URI：`http://localhost:3001/api/auth/callback/google`
+- 重定向 URI：
+  - 开发环境：`http://localhost:3001/api/auth/callback/google`
+  - 生产环境：`https://yourdomain.com/api/auth/callback/google`
 
-### 4. Redis 配置 (速率限制)
+### 4. 邮箱登录配置
+```bash
+# SMTP服务器配置
+EMAIL_SERVER=smtp://username:password@smtp.gmail.com:587
+EMAIL_FROM="OldPho <noreply@yourdomain.com>"
+
+# 或使用其他SMTP服务
+EMAIL_SERVER=smtp://user:pass@smtp.example.com:587
+EMAIL_FROM="OldPho <noreply@oldpho.com>"
+```
+
+### 5. Redis 配置 (速率限制)
 ```bash
 UPSTASH_REDIS_REST_URL=your_upstash_redis_url
 UPSTASH_REDIS_REST_TOKEN=your_upstash_redis_token
@@ -38,7 +56,7 @@ UPSTASH_REDIS_REST_TOKEN=your_upstash_redis_token
 - 获取地址：https://upstash.com/
 - 用于用户速率限制和缓存
 
-### 5. 上传配置
+### 6. 上传配置
 ```bash
 NEXT_PUBLIC_UPLOAD_API_KEY=your_bytescale_api_key
 ```
@@ -81,12 +99,17 @@ npm run dev
 REPLICATE_API_KEY=r8_your_replicate_api_key_here
 
 # NextAuth 配置 (必需)
-NEXTAUTH_URL=http://localhost:3001
+NEXTAUTH_URL=http://localhost:3001  # 开发环境
+# NEXTAUTH_URL=https://yourdomain.com  # 生产环境
 NEXTAUTH_SECRET=your_generated_secret_here
 
 # Google OAuth (可选)
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# 邮箱登录配置 (可选)
+EMAIL_SERVER=smtp://user:pass@smtp.example.com:587
+EMAIL_FROM="OldPho <noreply@oldpho.com>"
 
 # 数据库配置 (Docker 自动设置)
 POSTGRES_PASSWORD=oldpho_password_2024
@@ -149,12 +172,18 @@ curl -H "Authorization: Bearer $UPSTASH_REDIS_REST_TOKEN" \
 2. **Google OAuth 错误**
    - 检查重定向 URI 是否正确
    - 确保域名匹配
+   - 验证 NEXTAUTH_URL 设置
 
-3. **Redis 连接错误**
+3. **邮箱登录错误**
+   - 检查 EMAIL_SERVER 和 EMAIL_FROM 配置
+   - 验证 SMTP 服务器设置
+   - 确保邮箱地址格式正确
+
+4. **Redis 连接错误**
    - 检查 URL 和 Token 格式
    - 验证网络连接
 
-4. **上传功能错误**
+5. **上传功能错误**
    - 检查 Bytescale API Key
    - 验证域名配置
 

@@ -25,6 +25,21 @@ const validateConfig = () => {
   return errors;
 };
 
+// 动态获取NEXTAUTH_URL
+const getNextAuthUrl = () => {
+  // 如果环境变量中有NEXTAUTH_URL，使用它
+  if (process.env.NEXTAUTH_URL) {
+    return process.env.NEXTAUTH_URL;
+  }
+  
+  // 否则根据环境推断
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://oldpho.com';
+  }
+  
+  return 'http://localhost:3001';
+};
+
 export const authOptions: NextAuthOptions = {
   providers: [
     // Google Provider (可选)
