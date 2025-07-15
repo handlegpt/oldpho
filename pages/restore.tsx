@@ -67,6 +67,24 @@ export default function Restore() {
     setCurrentLanguage(language);
   };
 
+  const handleShare = () => {
+    if (restoredImage) {
+      // Use native share API if available
+      if (navigator.share) {
+        navigator.share({
+          title: 'Restored Image - OldPho',
+          text: 'I restored this photo using OldPho AI technology!',
+          url: window.location.href
+        }).catch(console.error);
+      } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(window.location.href).then(() => {
+          alert('Link copied to clipboard!');
+        }).catch(console.error);
+      }
+    }
+  };
+
   return (
     <>
       <Head>
@@ -203,8 +221,7 @@ export default function Restore() {
                 </div>
                 <div className="mt-4 flex justify-center">
                   <ShareButton
-                    imageUrl={restoredImage}
-                    title="Restored Image"
+                    onClick={handleShare}
                     currentLanguage={currentLanguage}
                   />
                 </div>
