@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import redis from '../../utils/redis';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from './auth/[...nextauth]';
-import prisma from '../../lib/prismadb';
 
 export default async function handler(
   req: NextApiRequest,
@@ -20,38 +19,11 @@ export default async function handler(
   }
 
   try {
-    // Get user's subscription
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email! },
-      include: { subscription: true }
-    });
-
-    if (!user) {
-      return res.status(404).json('User not found');
-    }
-
-    // Determine rate limit based on subscription
-    let rateLimit: number;
-    let isFreeUser = true;
-
-    if (user.subscription && user.subscription.status === 'active') {
-      switch (user.subscription.planId) {
-        case 'pro':
-          rateLimit = 50;
-          isFreeUser = false;
-          break;
-        case 'enterprise':
-          rateLimit = -1; // Unlimited
-          isFreeUser = false;
-          break;
-        default:
-          rateLimit = 5;
-          isFreeUser = true;
-      }
-    } else {
-      rateLimit = 5; // Free plan
-      isFreeUser = true;
-    }
+    // For now, provide fallback behavior without database
+    // This ensures the app works even without Prisma setup
+    const rateLimit = 5; // Free plan default
+    const isFreeUser = true;
+    const planId = 'free';
 
     // Query the redis database by email to get the number of generations left
     const identifier = session.user.email;
@@ -88,7 +60,7 @@ export default async function handler(
       minutes,
       usedGenerations: Number(usedGenerations),
       isFreeUser,
-      planId: user.subscription?.planId || 'free'
+      planId
     });
   } catch (error) {
     console.error('Remaining API error:', error);

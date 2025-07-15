@@ -82,8 +82,13 @@ const Home: NextPage = () => {
     processingManager.updateOptions({ language });
   };
 
-  const fetcher = (url: string) => fetch(url).then((res) => res.json());
-  const { data, mutate } = useSWR('/api/remaining', fetcher);
+  const fetcher = (url: string) => fetch(url).then((res) => {
+    if (!res.ok) {
+      throw new Error('Failed to fetch data');
+    }
+    return res.json();
+  });
+  const { data, mutate, error: swrError } = useSWR('/api/remaining', fetcher);
   const { data: session, status } = useSession();
 
   const options: UploadWidgetConfig = {
@@ -310,7 +315,7 @@ const Home: NextPage = () => {
             <p className='text-slate-500 mb-8'>{t.description}</p>
           </div>
 
-          {/* 登录状态检查 */}
+          {/* Login status check */}
           {status === 'loading' ? (
             <div className="flex items-center justify-center">
               <LoadingSpinner size="lg" color="blue" text="Loading..." />
@@ -342,24 +347,42 @@ const Home: NextPage = () => {
                 </div>
               </AnimatedCard>
             </div>
-          ) : status === 'authenticated' && data ? (
+          ) : status === 'authenticated' ? (
             <>
-              {/* 显示剩余次数 */}
-              <div className="w-full max-w-2xl mb-8">
-                <AnimatedCard className="bg-green-50 border-green-200 p-4">
-                  <p className='text-green-800'>
-                    {currentLanguage === 'zh-TW' ? '您本月还有' : currentLanguage === 'ja' ? '今月はまだ' : 'You have'}{' '}
-                    <span className='font-semibold text-green-900'>
-                      {data.remainingGenerations} {currentLanguage === 'zh-TW' ? '次修复' : currentLanguage === 'ja' ? '回の復元' : 'generations'}
-                    </span>{' '}
-                    {currentLanguage === 'zh-TW' ? '剩余。您的配额将在' : currentLanguage === 'ja' ? 'が残っています。クォータは' : 'left this month. Your generations will renew in'}{' '}
-                    <span className='font-semibold text-green-900'>
-                      {data.hours} {currentLanguage === 'zh-TW' ? '小时' : currentLanguage === 'ja' ? '時間' : 'hours'} {currentLanguage === 'zh-TW' ? '和' : currentLanguage === 'ja' ? 'と' : 'and'} {data.minutes} {currentLanguage === 'zh-TW' ? '分钟' : currentLanguage === 'ja' ? '分' : 'minutes'}
-                    </span>{' '}
-                    {currentLanguage === 'zh-TW' ? '后重置。' : currentLanguage === 'ja' ? '後にリセットされます。' : '.'}
-                  </p>
-                </AnimatedCard>
-              </div>
+              {/* Show remaining generations if data is available */}
+              {data && (
+                <div className="w-full max-w-2xl mb-8">
+                  <AnimatedCard className="bg-green-50 border-green-200 p-4">
+                    <p className='text-green-800'>
+                      {currentLanguage === 'zh-TW' ? '您本月还有' : currentLanguage === 'ja' ? '今月はまだ' : 'You have'}{' '}
+                      <span className='font-semibold text-green-900'>
+                        {data.remainingGenerations} {currentLanguage === 'zh-TW' ? '次修复' : currentLanguage === 'ja' ? '回の復元' : 'generations'}
+                      </span>{' '}
+                      {currentLanguage === 'zh-TW' ? '剩余。您的配额将在' : currentLanguage === 'ja' ? 'が残っています。クォータは' : 'left this month. Your generations will renew in'}{' '}
+                      <span className='font-semibold text-green-900'>
+                        {data.hours} {currentLanguage === 'zh-TW' ? '小时' : currentLanguage === 'ja' ? '時間' : 'hours'} {currentLanguage === 'zh-TW' ? '和' : currentLanguage === 'ja' ? 'と' : 'and'} {data.minutes} {currentLanguage === 'zh-TW' ? '分钟' : currentLanguage === 'ja' ? '分' : 'minutes'}
+                      </span>{' '}
+                      {currentLanguage === 'zh-TW' ? '后重置。' : currentLanguage === 'ja' ? '後にリセットされます。' : '.'}
+                    </p>
+                  </AnimatedCard>
+                </div>
+              )}
+
+              {/* Show error if data fetch failed */}
+              {swrError && (
+                <div className="w-full max-w-2xl mb-8">
+                  <AnimatedCard className="bg-yellow-50 border-yellow-200 p-4">
+                    <p className='text-yellow-800'>
+                      {currentLanguage === 'zh-TW' 
+                        ? '无法获取用户配额信息，但您仍可以使用基本功能。' 
+                        : currentLanguage === 'ja' 
+                        ? 'ユーザークォータ情報を取得できませんが、基本機能は使用できます。'
+                        : 'Unable to get user quota info, but you can still use basic features.'
+                      }
+                    </p>
+                  </AnimatedCard>
+                </div>
+              )}
 
               {!originalPhoto ? (
                 <UploadDropZone />
