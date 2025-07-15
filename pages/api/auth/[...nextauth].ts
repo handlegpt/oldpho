@@ -92,6 +92,13 @@ export const authOptions: NextAuthOptions = {
       console.log('SignOut event:', message);
     },
   },
+  
+  // Page configuration
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/error',
+    verifyRequest: '/auth/verify-request',
+  },
 };
 
 // 验证配置
