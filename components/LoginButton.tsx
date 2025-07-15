@@ -20,92 +20,15 @@ const LoginButton: React.FC<LoginButtonProps> = ({
     setIsLoading(true);
     
     try {
-      // First, check if environment variables are properly configured
-      const debugResponse = await fetch('/api/auth/debug');
-      const debugData = await debugResponse.json();
-      
-      if (debugData.missingVariables.length > 0) {
-        console.error('Missing environment variables:', debugData.missingVariables);
-        onError?.(`Configuration error: Missing ${debugData.missingVariables.join(', ')}`);
-        return;
-      }
-
-      const result = await signIn('google', {
-        callbackUrl: '/restore',
-        redirect: false
+      // Use NextAuth's default redirect behavior
+      await signIn('google', {
+        callbackUrl: '/restore'
       });
-
-      console.log('Sign in result:', result);
-
-      if (result?.error) {
-        console.error('Sign in error:', result.error);
-        
-        // Handle different error types with more specific messages
-        switch (result.error) {
-          case 'Configuration':
-            onError?.('Authentication configuration error. Please check environment variables.');
-            break;
-          case 'AccessDenied':
-            onError?.('Access denied. Please check your Google account permissions.');
-            break;
-          case 'Verification':
-            onError?.('Verification failed. Please try again.');
-            break;
-          case 'OAuthSignin':
-            onError?.('OAuth sign-in error. Please check Google OAuth configuration.');
-            break;
-          case 'OAuthCallback':
-            onError?.('OAuth callback error. Please check redirect URI configuration.');
-            break;
-          case 'OAuthCreateAccount':
-            onError?.('OAuth account creation error.');
-            break;
-          case 'EmailCreateAccount':
-            onError?.('Email account creation error.');
-            break;
-          case 'Callback':
-            onError?.('Callback error. Please try again.');
-            break;
-          case 'OAuthAccountNotLinked':
-            onError?.('Account not linked. Please use the same email address.');
-            break;
-          case 'EmailSignin':
-            onError?.('Email sign-in error.');
-            break;
-          case 'CredentialsSignin':
-            onError?.('Credentials sign-in error.');
-            break;
-          case 'SessionRequired':
-            onError?.('Session required. Please try again.');
-            break;
-          default:
-            onError?.(`Login error: ${result.error}. Please try again.`);
-        }
-        
-        // Auto retry if retry count is less than 3
-        if (retryCount < 3) {
-          setTimeout(() => {
-            setRetryCount(prev => prev + 1);
-            handleSignIn();
-          }, 2000);
-        }
-      } else if (result?.url) {
-        // Check if the URL is a Google OAuth URL (expected behavior)
-        if (result.url.includes('accounts.google.com') || result.url.includes('oauth')) {
-          console.log('Redirecting to OAuth provider:', result.url);
-          // This is the expected behavior - redirect to Google for authentication
-          window.location.href = result.url;
-        } else {
-          // This might be a successful login redirect
-          console.log('Login successful, redirecting to:', result.url);
-          window.location.href = result.url;
-        }
-      } else {
-        // No error and no URL - this might be a successful login without redirect
-        console.log('Login successful without redirect');
-        // Don't show error, just let the page refresh or redirect naturally
-        window.location.reload();
-      }
+      
+      // If we reach here, it means the redirect didn't happen
+      // This could be due to an error or configuration issue
+      console.log('Sign in completed without redirect');
+      
     } catch (error) {
       console.error('Sign in exception:', error);
       onError?.('Network error during login. Please check your connection and try again.');
