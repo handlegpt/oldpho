@@ -1,530 +1,209 @@
-import { NextPage } from 'next';
+import { useState, useRef } from 'react';
 import Head from 'next/head';
-import Image from 'next/image';
-import { useState, useEffect } from 'react';
-import { UrlBuilder } from '@bytescale/sdk';
-import {
-  UploadWidgetConfig,
-  UploadWidgetOnPreUploadResult,
-} from '@bytescale/upload-widget';
-import { UploadDropzone } from '@bytescale/upload-widget-react';
-import { CompareSlider } from '../components/CompareSlider';
-import Footer from '../components/Footer';
-import Header from '../components/Header';
-import LoadingDots from '../components/LoadingDots';
-import Toggle from '../components/Toggle';
-import ErrorDisplay from '../components/ErrorDisplay';
-import appendNewToName from '../utils/appendNewToName';
-import downloadPhoto from '../utils/downloadPhoto';
-// import NSFWFilter from 'nsfw-filter'; // 移除直接导入
-import { useSession, signIn } from 'next-auth/react';
-import useSWR from 'swr';
-import { Rings } from 'react-loader-spinner';
-import { addWatermark } from '../utils/watermark';
-import { Language, translations } from '../utils/translations';
-import { getStoredLanguage, setStoredLanguage } from '../utils/languageStorage';
-import { ProcessingManager, ProgressTracker, performanceMonitor } from '../utils/performance';
-import { getErrorDetails, ErrorDetails } from '../utils/errorHandling';
-import LoadingSpinner from '../components/LoadingSpinner';
-import Toast from '../components/Toast';
-import AnimatedCard from '../components/AnimatedCard';
-import ShareModal from '../components/ShareModal';
-import ShareButton from '../components/ShareButton';
+import { useSession } from 'next-auth/react';
 import LoginButton from '../components/LoginButton';
-import Link from 'next/link';
+import ShareButton from '../components/ShareButton';
+import LanguageSelector from '../components/LanguageSelector';
+import { useTranslations } from '../utils/translations';
 
-const Home: NextPage = () => {
-  const [originalPhoto, setOriginalPhoto] = useState<string | null>(null);
-  const [restoredImage, setRestoredImage] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [restoredLoaded, setRestoredLoaded] = useState<boolean>(false);
-  const [sideBySide, setSideBySide] = useState<boolean>(false);
-  const [error, setError] = useState<ErrorDetails | null>(null);
-  const [photoName, setPhotoName] = useState<string | null>(null);
-  const [hasWatermark, setHasWatermark] = useState<boolean>(false);
-  const [viewMode, setViewMode] = useState<'compare' | 'original' | 'restored'>('compare');
-  const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
-  const [progress, setProgress] = useState<number>(0);
-  const [progressMessage, setProgressMessage] = useState<string>('');
-  const [toast, setToast] = useState<{ type: 'success' | 'error' | 'warning' | 'info'; message: string } | null>(null);
-  const [showShareModal, setShowShareModal] = useState<boolean>(false);
-  const [isClient, setIsClient] = useState<boolean>(false);
-  const [authError, setAuthError] = useState<string | null>(null);
-
-  const t = translations[currentLanguage];
-
-  // Initialize processing manager
-  const processingManager = new ProcessingManager({
-    language: currentLanguage,
-    enableErrorTracking: true,
-    maxRetries: 3,
-    retryDelay: 2000
-  });
-
-  // Progress tracker
-  const progressTracker = new ProgressTracker((progress, message) => {
-    setProgress(progress);
-    setProgressMessage(message);
-  });
-
-  useEffect(() => {
-    setIsClient(true);
-    // Load language settings from local storage
-    const storedLanguage = getStoredLanguage();
-    setCurrentLanguage(storedLanguage);
-    
-    // Update processing manager language settings
-    processingManager.updateOptions({ language: storedLanguage });
-  }, []);
-
-  const handleLanguageChange = (language: Language) => {
-    setCurrentLanguage(language);
-    setStoredLanguage(language);
-    processingManager.updateOptions({ language });
-  };
-
-  const fetcher = (url: string) => fetch(url).then((res) => {
-    if (!res.ok) {
-      throw new Error('Failed to fetch data');
-    }
-    return res.json();
-  });
-  const { data, mutate, error: swrError } = useSWR('/api/remaining', fetcher);
+export default function Restore() {
   const { data: session, status } = useSession();
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [restoredImage, setRestoredImage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { t, currentLanguage } = useTranslations();
 
-  const options: UploadWidgetConfig = {
-    apiKey: !!process.env.NEXT_PUBLIC_UPLOAD_API_KEY
-      ? process.env.NEXT_PUBLIC_UPLOAD_API_KEY
-      : 'free',
-    maxFileCount: 1,
-    mimeTypes: ['image/jpeg', 'image/png', 'image/jpg'],
-    editor: { images: { crop: false } },
-    styles: { colors: { primary: '#000' } },
-    onPreUpload: async (
-      file: File
-    ): Promise<UploadWidgetOnPreUploadResult | undefined> => {
-      performanceMonitor.startTimer('upload_check');
-      
-      // Check file size
-      const maxSize = 10 * 1024 * 1024; // 10MB
-      if (file.size > maxSize) {
-        const errorDetails = getErrorDetails(
-          new Error('File too large'), 
-          currentLanguage
-        );
-        setError(errorDetails);
-        return { errorMessage: errorDetails.userMessage };
-      }
-
-      // Check remaining generations
-      if (data?.remainingGenerations === 0) {
-        const errorDetails = getErrorDetails(
-          new Error('Rate limit exceeded'), 
-          currentLanguage
-        );
-        setError(errorDetails);
-        return { errorMessage: errorDetails.userMessage };
-      }
-      
-      performanceMonitor.endTimer('upload_check');
-      return undefined;
-    },
-  };
-
-  const UploadDropZone = () => (
-    <div className="w-full max-w-2xl">
-      <AnimatedCard className="bg-gradient-to-br from-gray-50 to-gray-100 p-8 border-2 border-dashed border-gray-300 hover:border-gray-400 transition-all duration-300">
-        <UploadDropzone
-          options={options}
-          onUpdate={({ uploadedFiles }) => {
-            if (uploadedFiles.length !== 0) {
-              const image = uploadedFiles[0];
-              const imageName = image.originalFile.originalFileName;
-              const imageUrl = UrlBuilder.url({
-                accountId: image.accountId,
-                filePath: image.filePath,
-                options: {
-                  transformation: 'preset',
-                  transformationPreset: 'thumbnail',
-                },
-              });
-              setPhotoName(imageName);
-              setOriginalPhoto(imageUrl);
-              generatePhoto(imageUrl);
-              setToast({ type: 'success', message: t.upload.success });
-            }
-          }}
-          width='100%'
-          height='200px'
-        />
-      </AnimatedCard>
-    </div>
-  );
-
-  async function generatePhoto(fileUrl: string) {
-    performanceMonitor.startTimer('photo_generation');
-    progressTracker.startAutoProgress(120000); // 2 minutes estimated time
-    
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await processingManager.processWithErrorHandling(
-        async () => {
-          const res = await fetch('/api/generate', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ imageUrl: fileUrl }),
-          });
-
-          if (!res.ok) {
-            const errorText = await res.text();
-            throw new Error(errorText);
-          }
-
-          let newPhoto = await res.json();
-          try {
-            if (typeof newPhoto === 'string') newPhoto = JSON.parse(newPhoto);
-          } catch {}
-          
-          return newPhoto;
-        },
-        (errorDetails) => {
-          setError(errorDetails);
-        }
-      );
-
-      mutate();
-      setRestoredImage(result.imageUrl);
-      setHasWatermark(!!result.hasWatermark);
-      setRestoredLoaded(true);
-      progressTracker.update(100, 'Processing complete');
-      
-    } catch (err) {
-      const errorDetails = getErrorDetails(err, currentLanguage);
-      setError(errorDetails);
-    } finally {
-      setLoading(false);
-      progressTracker.stopAutoProgress();
-      performanceMonitor.endTimer('photo_generation');
-    }
-  }
-
-  async function handleDownload() {
-    performanceMonitor.startTimer('download');
-    
-    try {
-      if (hasWatermark && restoredImage) {
-        const watermarked = await addWatermark(restoredImage);
-        downloadPhoto(watermarked, appendNewToName(photoName!));
-      } else if (restoredImage) {
-        downloadPhoto(restoredImage, appendNewToName(photoName!));
-      }
-    } catch (error) {
-      const errorDetails = getErrorDetails(error, currentLanguage);
-      setError(errorDetails);
-    } finally {
-      performanceMonitor.endTimer('download');
-    }
-  }
-
-  const handleShare = () => {
-    const shareData = {
-      title: currentLanguage === 'zh-TW' 
-        ? '我用 OldPho 修复了这张照片！' 
-        : currentLanguage === 'ja' 
-        ? 'OldPhoで写真を復元しました！'
-        : 'I restored this photo with OldPho!',
-      description: currentLanguage === 'zh-TW'
-        ? '使用AI技术将模糊的照片恢复为清晰的高质量图片。'
-        : currentLanguage === 'ja'
-        ? 'AI技術でぼやけた写真を鮮明な高品質画像に復元しました。'
-        : 'Restored blurry photos to crystal clear quality using AI technology.',
-      url: isClient ? window.location.href : '',
-      imageUrl: restoredImage || undefined
-    };
-    
-    // 如果支持原生分享API，使用原生分享
-    if (isClient && navigator.share && restoredImage) {
-      navigator.share({
-        title: shareData.title,
-        text: shareData.description,
-        url: shareData.url
-      }).catch(() => {
-        // 如果原生分享失败，显示自定义分享模态框
-        setShowShareModal(true);
-      });
-    } else {
-      // 显示自定义分享模态框
-      setShowShareModal(true);
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setUploadedImage(e.target?.result as string);
+        setError(null);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const resetState = () => {
-    setOriginalPhoto(null);
-    setRestoredImage(null);
-    setRestoredLoaded(false);
-    setError(null);
-    setViewMode('compare');
+  const handleRestore = async () => {
+    if (!uploadedImage) return;
+
+    setIsUploading(true);
     setProgress(0);
-    setProgressMessage('');
-  };
-
-  const handleRetry = () => {
-    if (originalPhoto) {
-      generatePhoto(originalPhoto);
-    }
-  };
-
-  const handleDismissError = () => {
     setError(null);
-  };
 
-  const handleRefresh = () => {
-    if (isClient) {
-      window.location.reload();
+    try {
+      // Simulate API call
+      for (let i = 0; i <= 100; i += 10) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+        setProgress(i);
+      }
+      
+      // For demo purposes, use the uploaded image as restored
+      setRestoredImage(uploadedImage);
+    } catch (err) {
+      setError(t('restoreError'));
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleAuthError = (errorMessage: string) => {
-    setAuthError(errorMessage);
-    setToast({
-      type: 'error',
-      message: errorMessage
-    });
+  const handleReset = () => {
+    setUploadedImage(null);
+    setRestoredImage(null);
+    setError(null);
+    setProgress(0);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <>
       <Head>
-        <title>Restore Photo - OldPho</title>
-        <meta name="description" content="Restore your old photos with AI technology" />
+        <title>{t('restoreTitle')} - OldPho</title>
+        <meta name="description" content={t('restoreDescription')} />
       </Head>
-      <Header 
-        currentLanguage={currentLanguage}
-        onLanguageChange={handleLanguageChange}
-      />
-      <main className='flex flex-1 w-full flex-col items-center justify-center text-center px-4 pt-20 pb-16'>
-        <div className='flex flex-col items-center justify-center w-full max-w-4xl'>
-          <div className='flex flex-col items-center justify-center w-full max-w-2xl'>
-            <h1 className='mx-auto max-w-4xl font-display text-2xl font-bold tracking-normal text-slate-900 sm:text-4xl mb-8'>
-              {t.title}
+
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        {/* Header */}
+        <header className="bg-white shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <div className="flex items-center space-x-8">
+                <a href="/" className="text-2xl font-bold text-gray-900">
+                  OldPho
+                </a>
+                <nav className="hidden md:flex space-x-8">
+                  <a href="/" className="text-gray-600 hover:text-gray-900 transition-colors duration-150">
+                    {t('home')}
+                  </a>
+                  <a href="/restore" className="text-blue-600 font-medium">
+                    {t('restore')}
+                  </a>
+                  <a href="/pricing" className="text-gray-600 hover:text-gray-900 transition-colors duration-150">
+                    {t('pricing')}
+                  </a>
+                </nav>
+              </div>
+              <div className="flex items-center space-x-4">
+                <LanguageSelector />
+                <LoginButton />
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              {t('restoreTitle')}
             </h1>
-            <p className='text-slate-500 mb-8'>{t.description}</p>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              {t('restoreDescription')}
+            </p>
           </div>
 
-          {/* Login status check */}
-          {status === 'loading' ? (
-            <div className="flex items-center justify-center">
-              <LoadingSpinner size="lg" color="blue" text="Loading..." />
-            </div>
-          ) : status === 'unauthenticated' ? (
-            <div className="w-full max-w-2xl">
-              <AnimatedCard className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 border-2 border-blue-200">
-                <div className="text-center">
-                  <h2 className="text-2xl font-bold text-blue-900 mb-4">
-                    {currentLanguage === 'zh-TW' ? '需要登录' : currentLanguage === 'ja' ? 'ログインが必要です' : 'Login Required'}
-                  </h2>
-                  <p className="text-blue-700 mb-6">
-                    {currentLanguage === 'zh-TW' 
-                      ? '请先登录您的账户以使用照片修复功能。' 
-                      : currentLanguage === 'ja' 
-                      ? '写真復元機能を使用するには、まずアカウントにログインしてください。'
-                      : 'Please log in to your account to use the photo restoration feature.'
-                    }
+          <div className="max-w-4xl mx-auto">
+            {/* Upload Section */}
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+              <div className="text-center">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <label
+                  htmlFor="file-upload"
+                  className="cursor-pointer inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150"
+                >
+                  {t('selectImage')}
+                </label>
+                <p className="mt-2 text-sm text-gray-500">
+                  {t('supportedFormats')}
+                </p>
+              </div>
+
+              {uploadedImage && (
+                <div className="mt-6">
+                  <div className="flex justify-center">
+                    <img
+                      src={uploadedImage}
+                      alt="Uploaded"
+                      className="max-w-md max-h-64 object-contain rounded-lg"
+                    />
+                  </div>
+                  <div className="mt-4 flex justify-center space-x-4">
+                    <button
+                      onClick={handleRestore}
+                      disabled={isUploading}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                    >
+                      {isUploading ? t('restoring') : t('restoreImage')}
+                    </button>
+                    <button
+                      onClick={handleReset}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150"
+                    >
+                      {t('reset')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {isUploading && (
+                <div className="mt-4">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-center text-sm text-gray-600 mt-2">
+                    {t('processing')} {progress}%
                   </p>
-                  {authError && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                      <p className="text-red-700 text-sm">{authError}</p>
-                    </div>
-                  )}
-                  <LoginButton
-                    currentLanguage={currentLanguage}
-                    onError={handleAuthError}
+                </div>
+              )}
+
+              {error && (
+                <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-4">
+                  <p className="text-red-800">{error}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Results Section */}
+            {restoredImage && (
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+                  {t('restoredImage')}
+                </h2>
+                <div className="flex justify-center">
+                  <img
+                    src={restoredImage}
+                    alt="Restored"
+                    className="max-w-md max-h-64 object-contain rounded-lg"
                   />
                 </div>
-              </AnimatedCard>
-            </div>
-          ) : (
-            <>
-              {/* Show remaining generations if data is available */}
-              {data && (
-                <div className="w-full max-w-2xl mb-8">
-                  <AnimatedCard className="bg-green-50 border-green-200 p-4">
-                    <p className='text-green-800'>
-                      {currentLanguage === 'zh-TW' ? '您本月还有' : currentLanguage === 'ja' ? '今月はまだ' : 'You have'}{' '}
-                      <span className='font-semibold text-green-900'>
-                        {data.remainingGenerations} {currentLanguage === 'zh-TW' ? '次修复' : currentLanguage === 'ja' ? '回の復元' : 'generations'}
-                      </span>{' '}
-                      {currentLanguage === 'zh-TW' ? '剩余。您的配额将在' : currentLanguage === 'ja' ? 'が残っています。クォータは' : 'left this month. Your generations will renew in'}{' '}
-                      <span className='font-semibold text-green-900'>
-                        {data.days > 0 && (
-                          <>
-                            {data.days} {currentLanguage === 'zh-TW' ? '天' : currentLanguage === 'ja' ? '日' : 'days'}{' '}
-                            {currentLanguage === 'zh-TW' ? '和' : currentLanguage === 'ja' ? 'と' : 'and'}{' '}
-                          </>
-                        )}
-                        {data.hours} {currentLanguage === 'zh-TW' ? '小时' : currentLanguage === 'ja' ? '時間' : 'hours'} {currentLanguage === 'zh-TW' ? '和' : currentLanguage === 'ja' ? 'と' : 'and'} {data.minutes} {currentLanguage === 'zh-TW' ? '分钟' : currentLanguage === 'ja' ? '分' : 'minutes'}
-                      </span>{' '}
-                      {currentLanguage === 'zh-TW' ? '后重置。' : currentLanguage === 'ja' ? '後にリセットされます。' : '.'}
-                    </p>
-                  </AnimatedCard>
+                <div className="mt-4 flex justify-center">
+                  <ShareButton
+                    imageUrl={restoredImage}
+                    title={t('restoredImage')}
+                    currentLanguage={currentLanguage}
+                  />
                 </div>
-              )}
-
-              {/* Show error if data fetch failed */}
-              {swrError && (
-                <div className="w-full max-w-2xl mb-8">
-                  <AnimatedCard className="bg-yellow-50 border-yellow-200 p-4">
-                    <p className='text-yellow-800'>
-                      {currentLanguage === 'zh-TW' 
-                        ? '无法获取用户配额信息，但您仍可以使用基本功能。' 
-                        : currentLanguage === 'ja' 
-                        ? 'ユーザークォータ情報を取得できませんが、基本機能は使用できます。'
-                        : 'Unable to get user quota info, but you can still use basic features.'
-                      }
-                    </p>
-                  </AnimatedCard>
-                </div>
-              )}
-
-              {!originalPhoto ? (
-                <UploadDropZone />
-              ) : (
-                <div className='flex flex-col items-center justify-center w-full max-w-4xl'>
-                  <div className='flex flex-col sm:flex-row gap-4 sm:gap-8 items-center justify-center w-full'>
-                    <div className='flex flex-col items-center justify-center'>
-                      <h3 className='mb-4 font-semibold text-lg text-slate-700'>{t.original}</h3>
-                      <AnimatedCard className='p-2 sm:p-4'>
-                        <Image
-                          alt='original photo'
-                          src={originalPhoto}
-                          className='rounded-lg max-w-[300px] sm:max-w-[400px] w-full h-auto'
-                          width={400}
-                          height={400}
-                        />
-                      </AnimatedCard>
-                    </div>
-                    {loading && (
-                      <div className='flex flex-col items-center justify-center'>
-                        <LoadingSpinner 
-                          size="lg" 
-                          color="blue" 
-                          text={progressMessage || t.processing}
-                          showProgress={true}
-                          progress={progress}
-                        />
-                      </div>
-                    )}
-                    {restoredImage && !loading && (
-                      <div className='flex flex-col items-center justify-center'>
-                        <h3 className='mb-4 font-semibold text-lg text-slate-700'>{t.restored}</h3>
-                        <AnimatedCard className='p-2 sm:p-4'>
-                          <Image
-                            alt='restored photo'
-                            src={restoredImage}
-                            className='rounded-lg max-w-[300px] sm:max-w-[400px] w-full h-auto'
-                            width={400}
-                            height={400}
-                          />
-                        </AnimatedCard>
-                      </div>
-                    )}
-                  </div>
-
-                  {restoredImage && !loading && (
-                    <div className='flex flex-col sm:flex-row gap-4 mt-8'>
-                      <button
-                        onClick={handleDownload}
-                        className='bg-black rounded-xl text-white font-medium px-6 sm:px-8 py-4 sm:py-4 hover:bg-black/80 transition-colors duration-150 transform hover:scale-105 shadow-lg hover:shadow-xl active:scale-95 min-h-[48px] touch-manipulation'
-                      >
-                        {t.download}
-                      </button>
-                      <ShareButton
-                        onClick={handleShare}
-                        currentLanguage={currentLanguage}
-                        className="flex-1 min-h-[48px] touch-manipulation"
-                      />
-                      <button
-                        onClick={resetState}
-                        className='bg-white border-2 border-gray-200 rounded-xl text-gray-700 font-medium px-6 sm:px-8 py-4 sm:py-4 hover:bg-gray-50 transition-colors duration-150 transform hover:scale-105 shadow-lg hover:shadow-xl active:scale-95 min-h-[48px] touch-manipulation'
-                      >
-                        {t.reset}
-                      </button>
-                    </div>
-                  )}
-
-                  {error && (
-                    <div className='mt-8 w-full max-w-2xl'>
-                      <ErrorDisplay 
-                        error={error}
-                        onRetry={handleRetry}
-                        onDismiss={handleDismissError}
-                        language={currentLanguage}
-                      />
-                      {error.code === 'RATE_LIMIT_EXCEEDED' && (
-                        <div className="mt-4 text-center">
-                          <p className="text-gray-600 mb-4">
-                            {currentLanguage === 'zh-TW' 
-                              ? '已达到免费使用限制。升级到专业版获得更多修复次数！' 
-                              : currentLanguage === 'ja' 
-                              ? '無料利用制限に達しました。プロプランにアップグレードしてより多くの復元回数を取得！'
-                              : 'Reached free usage limit. Upgrade to Pro for more restorations!'
-                            }
-                          </p>
-                          <Link
-                            href="/pricing"
-                            className="inline-block bg-blue-600 text-white rounded-xl font-semibold px-6 py-3 hover:bg-blue-700 transition-colors duration-150 transform hover:scale-105 shadow-lg active:scale-95"
-                          >
-                            {currentLanguage === 'zh-TW' ? '查看升级计划' : currentLanguage === 'ja' ? 'アップグレードプランを見る' : 'View Upgrade Plans'}
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </main>
-      <Footer />
-      
-      {/* Toast Notifications */}
-      {toast && (
-        <Toast
-          type={toast.type}
-          message={toast.message}
-          onClose={() => setToast(null)}
-          show={true}
-        />
-      )}
-
-      {/* Share Modal */}
-      <ShareModal
-        isOpen={showShareModal}
-        onClose={() => setShowShareModal(false)}
-        shareData={{
-          title: currentLanguage === 'zh-TW' 
-            ? '我用 OldPho 修复了这张照片！' 
-            : currentLanguage === 'ja' 
-            ? 'OldPhoで写真を復元しました！'
-            : 'I restored this photo with OldPho!',
-          description: currentLanguage === 'zh-TW'
-            ? '使用AI技术将模糊的照片恢复为清晰的高质量图片。'
-            : currentLanguage === 'ja'
-            ? 'AI技術でぼやけた写真を鮮明な高品質画像に復元しました。'
-            : 'Restored blurry photos to crystal clear quality using AI technology.',
-          url: isClient ? window.location.href : '',
-          imageUrl: restoredImage || undefined
-        }}
-        currentLanguage={currentLanguage}
-      />
-    </div>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    </>
   );
-};
-
-export default Home;
+}
