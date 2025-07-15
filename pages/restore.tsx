@@ -136,75 +136,102 @@ export default function Restore() {
           </div>
 
           <div className="max-w-4xl mx-auto">
-            {/* Upload Section */}
-            <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-              <div className="text-center">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  id="file-upload"
-                />
-                <label
-                  htmlFor="file-upload"
-                  className="cursor-pointer inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150"
-                >
-                  Select Image
-                </label>
-                <p className="mt-2 text-sm text-gray-500">
-                  Supported formats: JPEG, PNG, JPG
-                </p>
+            {/* Login Required Section */}
+            {status === 'loading' ? (
+              <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading...</p>
               </div>
-
-              {uploadedImage && (
-                <div className="mt-6">
-                  <div className="flex justify-center">
-                    <img
-                      src={uploadedImage}
-                      alt="Uploaded"
-                      className="max-w-md max-h-64 object-contain rounded-lg"
-                    />
-                  </div>
-                  <div className="mt-4 flex justify-center space-x-4">
-                    <button
-                      onClick={handleRestore}
-                      disabled={isUploading}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
-                    >
-                      {isUploading ? 'Restoring...' : 'Restore Image'}
-                    </button>
-                    <button
-                      onClick={handleReset}
-                      className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150"
-                    >
-                      {t.reset}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {isUploading && (
-                <div className="mt-4">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${progress}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-center text-sm text-gray-600 mt-2">
-                    {t.processing} {progress}%
+            ) : status === 'unauthenticated' ? (
+              <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                    {currentLanguage === 'zh-TW' ? '需要登录' : currentLanguage === 'ja' ? 'ログインが必要です' : 'Login Required'}
+                  </h2>
+                  <p className="text-gray-600 mb-6">
+                    {currentLanguage === 'zh-TW' 
+                      ? '请先登录您的账户以使用照片修复功能。' 
+                      : currentLanguage === 'ja' 
+                      ? '写真復元機能を使用するには、まずアカウントにログインしてください。'
+                      : 'Please log in to your account to use the photo restoration feature.'
+                    }
                   </p>
                 </div>
-              )}
-
-              {error && (
-                <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-4">
-                  <p className="text-red-800">{error}</p>
+                <div className="flex justify-center">
+                  <LoginButton />
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              /* Upload Section - Only shown when logged in */
+              <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <div className="text-center">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    id="file-upload"
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className="cursor-pointer inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150"
+                  >
+                    Select Image
+                  </label>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Supported formats: JPEG, PNG, JPG
+                  </p>
+                </div>
+
+                {uploadedImage && (
+                  <div className="mt-6">
+                    <div className="flex justify-center">
+                      <img
+                        src={uploadedImage}
+                        alt="Uploaded"
+                        className="max-w-md max-h-64 object-contain rounded-lg"
+                      />
+                    </div>
+                    <div className="mt-4 flex justify-center space-x-4">
+                      <button
+                        onClick={handleRestore}
+                        disabled={isUploading}
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                      >
+                        {isUploading ? 'Restoring...' : 'Restore Image'}
+                      </button>
+                      <button
+                        onClick={handleReset}
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150"
+                      >
+                        {t.reset}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {isUploading && (
+                  <div className="mt-4">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-center text-sm text-gray-600 mt-2">
+                      {t.processing} {progress}%
+                    </p>
+                  </div>
+                )}
+
+                {error && (
+                  <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-4">
+                    <p className="text-red-800">{error}</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Results Section */}
             {restoredImage && (
