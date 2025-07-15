@@ -92,15 +92,6 @@ export const authOptions: NextAuthOptions = {
       console.log('SignOut event:', message);
     },
   },
-  
-  // Page configuration
-  pages: {
-    signIn: '/auth/signin',
-    signOut: '/auth/signout',
-    error: '/auth/error',
-    verifyRequest: '/auth/verify-request',
-    newUser: '/auth/new-user',
-  },
 };
 
 // 验证配置
