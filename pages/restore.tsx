@@ -31,6 +31,7 @@ import AnimatedCard from '../components/AnimatedCard';
 import ShareModal from '../components/ShareModal';
 import ShareButton from '../components/ShareButton';
 import LoginButton from '../components/LoginButton';
+import Link from 'next/link';
 
 const Home: NextPage = () => {
   const [originalPhoto, setOriginalPhoto] = useState<string | null>(null);
@@ -458,6 +459,24 @@ const Home: NextPage = () => {
                         onDismiss={handleDismissError}
                         language={currentLanguage}
                       />
+                      {error.code === 'RATE_LIMIT_EXCEEDED' && (
+                        <div className="mt-4 text-center">
+                          <p className="text-gray-600 mb-4">
+                            {currentLanguage === 'zh-TW' 
+                              ? '已达到免费使用限制。升级到专业版获得更多修复次数！' 
+                              : currentLanguage === 'ja' 
+                              ? '無料利用制限に達しました。プロプランにアップグレードしてより多くの復元回数を取得！'
+                              : 'Reached free usage limit. Upgrade to Pro for more restorations!'
+                            }
+                          </p>
+                          <Link
+                            href="/pricing"
+                            className="inline-block bg-blue-600 text-white rounded-xl font-semibold px-6 py-3 hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg active:scale-95"
+                          >
+                            {currentLanguage === 'zh-TW' ? '查看升级计划' : currentLanguage === 'ja' ? 'アップグレードプランを見る' : 'View Upgrade Plans'}
+                          </Link>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

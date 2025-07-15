@@ -14,7 +14,7 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
 
   const handleRestoreClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    // 使用 window.location.href 进行强制跳转
+    // Use window.location.href for forced navigation
     if (typeof window !== 'undefined') {
       window.location.href = '/restore';
     }
@@ -62,6 +62,14 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
             >
               <p className='font-medium text-sm sm:text-base'>{t.navigation.restore}</p>
             </button>
+            <Link
+              href='/pricing'
+              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[32px] sm:min-h-[40px]'
+            >
+              <p className='font-medium text-sm sm:text-base'>
+                {currentLanguage === 'zh-TW' ? '价格' : currentLanguage === 'ja' ? '料金' : 'Pricing'}
+              </p>
+            </Link>
           </div>
         )}
       </div>

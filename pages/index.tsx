@@ -16,6 +16,7 @@ import { Testimonials } from '../components/Testimonials';
 import ShareModal from '../components/ShareModal';
 import ShareButton from '../components/ShareButton';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const Home: NextPage = () => {
   const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
@@ -325,12 +326,20 @@ const Home: NextPage = () => {
             <p className="text-lg sm:text-xl text-blue-100 mb-6 sm:mb-8 leading-relaxed">
               {t.finalCta.subtitle}
             </p>
-            <button
-              onClick={handleGetStarted}
-              className="bg-white text-blue-600 px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-semibold text-base sm:text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl touch-manipulation min-h-[48px] min-w-[120px]"
-            >
-              {t.finalCta.button}
-            </button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <button
+                onClick={handleGetStarted}
+                className="bg-white text-blue-600 px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-semibold text-base sm:text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl touch-manipulation min-h-[48px] min-w-[120px]"
+              >
+                {t.finalCta.button}
+              </button>
+              <Link
+                href="/pricing"
+                className="bg-transparent border-2 border-white text-white px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-semibold text-base sm:text-lg hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105 shadow-xl touch-manipulation min-h-[48px] min-w-[120px]"
+              >
+                {currentLanguage === 'zh-TW' ? '查看价格计划' : currentLanguage === 'ja' ? '料金プランを見る' : 'View Pricing Plans'}
+              </Link>
+            </div>
           </div>
         </section>
       </main>
