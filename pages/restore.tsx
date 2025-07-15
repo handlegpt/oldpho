@@ -155,7 +155,7 @@ export default function Restore() {
                   <LoginButton />
                 </div>
               </div>
-            ) :
+            ) : (
               /* Upload Section - Only shown when logged in */
               <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
                 <div className="text-center">
