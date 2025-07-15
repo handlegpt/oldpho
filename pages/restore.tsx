@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import LoginButton from '../components/LoginButton';
 import ShareButton from '../components/ShareButton';
 import LanguageSelector from '../components/LanguageSelector';
+import Header from '../components/Header';
 import { translations, Language } from '../utils/translations';
 
 export default function Restore() {
@@ -93,36 +94,10 @@ export default function Restore() {
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        {/* Header */}
-        <header className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
-              <div className="flex items-center space-x-8">
-                <a href="/" className="text-2xl font-bold text-gray-900">
-                  OldPho
-                </a>
-                <nav className="hidden md:flex space-x-8">
-                  <a href="/" className="text-gray-600 hover:text-gray-900 transition-colors duration-150">
-                    {t.navigation.home}
-                  </a>
-                  <a href="/restore" className="text-blue-600 font-medium">
-                    {t.navigation.restore}
-                  </a>
-                  <a href="/pricing" className="text-gray-600 hover:text-gray-900 transition-colors duration-150">
-                    Pricing
-                  </a>
-                </nav>
-              </div>
-              <div className="flex items-center space-x-4">
-                <LanguageSelector 
-                  currentLanguage={currentLanguage}
-                  onLanguageChange={handleLanguageChange}
-                />
-                <LoginButton />
-              </div>
-            </div>
-          </div>
-        </header>
+        <Header 
+          currentLanguage={currentLanguage}
+          onLanguageChange={handleLanguageChange}
+        />
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
