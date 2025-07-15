@@ -36,6 +36,14 @@ export const authOptions: NextAuthOptions = {
       console.log('JWT callback:', { user: user?.email, account: account?.provider });
       return token;
     },
+    async redirect({ url, baseUrl }: any) {
+      console.log('Redirect callback:', { url, baseUrl });
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
+    },
   },
   
   // Event handlers
