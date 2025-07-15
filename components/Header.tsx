@@ -97,6 +97,13 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
                   {session.user.email}
                 </div>
                 <Link
+                  href="/dashboard"
+                  className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors touch-manipulation"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {currentLanguage === 'zh-TW' ? '仪表板' : currentLanguage === 'ja' ? 'ダッシュボード' : 'Dashboard'}
+                </Link>
+                <Link
                   href="/restore"
                   className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors touch-manipulation"
                   onClick={() => setIsMenuOpen(false)}
@@ -109,6 +116,20 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {currentLanguage === 'zh-TW' ? '价格' : currentLanguage === 'ja' ? '料金' : 'Pricing'}
+                </Link>
+                <Link
+                  href="/settings"
+                  className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors touch-manipulation"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {currentLanguage === 'zh-TW' ? '设置' : currentLanguage === 'ja' ? '設定' : 'Settings'}
+                </Link>
+                <Link
+                  href="/help"
+                  className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors touch-manipulation"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {currentLanguage === 'zh-TW' ? '帮助' : currentLanguage === 'ja' ? 'ヘルプ' : 'Help'}
                 </Link>
                 <button
                   onClick={handleSignOut}
