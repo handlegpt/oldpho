@@ -16,7 +16,7 @@ export default function Restore() {
   const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const t = translations[currentLanguage];
+  const t = translations[currentLanguage as Language];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -63,6 +63,10 @@ export default function Restore() {
     }
   };
 
+  const handleLanguageChange = (language: Language) => {
+    setCurrentLanguage(language);
+  };
+
   return (
     <>
       <Head>
@@ -92,7 +96,10 @@ export default function Restore() {
                 </nav>
               </div>
               <div className="flex items-center space-x-4">
-                <LanguageSelector />
+                <LanguageSelector 
+                  currentLanguage={currentLanguage}
+                  onLanguageChange={handleLanguageChange}
+                />
                 <LoginButton />
               </div>
             </div>
