@@ -57,7 +57,7 @@ const LoginButton: React.FC<LoginButtonProps> = ({
     <button
       onClick={handleSignIn}
       disabled={isLoading}
-      className={`bg-blue-600 text-white rounded-xl font-semibold px-8 py-4 hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      className={`bg-blue-600 text-white rounded-xl font-semibold px-8 py-4 hover:bg-blue-700 transition-colors duration-150 transform hover:scale-105 shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
       {isLoading && (
         <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

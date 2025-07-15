@@ -34,7 +34,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({
   return (
     <button
       onClick={onClick}
-      className={`!bg-blue-600 !text-white rounded-xl font-medium transition-all duration-300 transform hover:scale-105 hover:!bg-blue-700 active:scale-95 shadow-lg ${sizeClasses[size]} ${className}`}
+      className={`!bg-blue-600 !text-white rounded-xl font-medium transition-colors duration-150 transform hover:scale-105 hover:!bg-blue-700 active:scale-95 shadow-lg ${sizeClasses[size]} ${className}`}
     >
       <div className="flex items-center space-x-2">
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

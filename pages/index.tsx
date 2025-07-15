@@ -145,14 +145,14 @@ const Home: NextPage = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8 sm:mb-12 px-4">
               <button
                 onClick={handleGetStarted}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl active:scale-95 touch-manipulation min-h-[48px] min-w-[120px]"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-colors duration-150 transform hover:scale-105 shadow-xl hover:shadow-2xl active:scale-95 touch-manipulation min-h-[48px] min-w-[120px]"
               >
                 {t.hero.cta}
               </button>
               <ShareButton
                 onClick={handleShare}
                 currentLanguage={currentLanguage}
-                className="bg-white border-2 border-gray-200 text-gray-700 px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-gray-50 transition-all duration-300 transform hover:scale-105 shadow-xl touch-manipulation min-h-[48px] min-w-[120px]"
+                className="bg-white border-2 border-gray-200 text-gray-700 px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-gray-50 transition-colors duration-150 transform hover:scale-105 shadow-xl touch-manipulation min-h-[48px] min-w-[120px]"
               />
             </div>
 
@@ -329,13 +329,13 @@ const Home: NextPage = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <button
                 onClick={handleGetStarted}
-                className="bg-white text-blue-600 px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-semibold text-base sm:text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-xl touch-manipulation min-h-[48px] min-w-[120px]"
+                className="bg-white text-blue-600 px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-semibold text-base sm:text-lg hover:bg-gray-100 transition-colors duration-150 transform hover:scale-105 shadow-xl touch-manipulation min-h-[48px] min-w-[120px]"
               >
                 {t.finalCta.button}
               </button>
               <Link
                 href="/pricing"
-                className="bg-transparent border-2 border-white text-white px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-semibold text-base sm:text-lg hover:bg-white hover:text-blue-600 transition-all duration-300 transform hover:scale-105 shadow-xl touch-manipulation min-h-[48px] min-w-[120px]"
+                className="bg-transparent border-2 border-white text-white px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-semibold text-base sm:text-lg hover:bg-white hover:text-blue-600 transition-colors duration-150 transform hover:scale-105 shadow-xl touch-manipulation min-h-[48px] min-w-[120px]"
               >
                 {currentLanguage === 'zh-TW' ? '查看价格计划' : currentLanguage === 'ja' ? '料金プランを見る' : 'View Pricing Plans'}
               </Link>

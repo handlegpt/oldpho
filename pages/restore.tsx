@@ -433,7 +433,7 @@ const Home: NextPage = () => {
                     <div className='flex flex-col sm:flex-row gap-4 mt-8'>
                       <button
                         onClick={handleDownload}
-                        className='bg-black rounded-xl text-white font-medium px-8 py-4 hover:bg-black/80 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl active:scale-95'
+                        className='bg-black rounded-xl text-white font-medium px-8 py-4 hover:bg-black/80 transition-colors duration-150 transform hover:scale-105 shadow-lg hover:shadow-xl active:scale-95'
                       >
                         {t.download}
                       </button>
@@ -444,7 +444,7 @@ const Home: NextPage = () => {
                       />
                       <button
                         onClick={resetState}
-                        className='bg-white border-2 border-gray-200 rounded-xl text-gray-700 font-medium px-8 py-4 hover:bg-gray-50 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl active:scale-95'
+                        className='bg-white border-2 border-gray-200 rounded-xl text-gray-700 font-medium px-8 py-4 hover:bg-gray-50 transition-colors duration-150 transform hover:scale-105 shadow-lg hover:shadow-xl active:scale-95'
                       >
                         {t.reset}
                       </button>
@@ -471,7 +471,7 @@ const Home: NextPage = () => {
                           </p>
                           <Link
                             href="/pricing"
-                            className="inline-block bg-blue-600 text-white rounded-xl font-semibold px-6 py-3 hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg active:scale-95"
+                            className="inline-block bg-blue-600 text-white rounded-xl font-semibold px-6 py-3 hover:bg-blue-700 transition-colors duration-150 transform hover:scale-105 shadow-lg active:scale-95"
                           >
                             {currentLanguage === 'zh-TW' ? '查看升级计划' : currentLanguage === 'ja' ? 'アップグレードプランを見る' : 'View Upgrade Plans'}
                           </Link>
