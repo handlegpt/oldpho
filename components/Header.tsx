@@ -1,5 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSession, signOut } from 'next-auth/react';
+import { useState, useRef, useEffect } from 'react';
 import LanguageSelector from './LanguageSelector';
 import { Language, translations } from '../utils/translations';
 
@@ -11,6 +13,23 @@ interface HeaderProps {
 
 export default function Header({ photo, currentLanguage, onLanguageChange }: HeaderProps) {
   const t = translations[currentLanguage];
+  const { data: session } = useSession();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleRestoreClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -18,6 +37,10 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
     if (typeof window !== 'undefined') {
       window.location.href = '/restore';
     }
+  };
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: '/' });
   };
 
   return (
@@ -40,15 +63,64 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
           currentLanguage={currentLanguage}
           onLanguageChange={onLanguageChange}
         />
-        {photo ? (
-          <Image
-            alt='Profile picture'
-            src={photo}
-            className='w-8 sm:w-10 rounded-full'
-            width={32}
-            height={28}
-          />
+        
+        {session?.user ? (
+          // User is logged in - show profile menu
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            >
+              <Image
+                alt='Profile picture'
+                src={session.user.image || '/default-avatar.png'}
+                className='w-8 sm:w-10 rounded-full'
+                width={32}
+                height={32}
+              />
+              <span className="hidden sm:block text-sm font-medium text-gray-700">
+                {session.user.name || session.user.email}
+              </span>
+              <svg 
+                className={`w-4 h-4 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {isMenuOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                <div className="px-4 py-2 text-sm text-gray-500 border-b border-gray-100">
+                  {session.user.email}
+                </div>
+                <Link
+                  href="/restore"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {t.navigation.restore}
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {currentLanguage === 'zh-TW' ? '价格' : currentLanguage === 'ja' ? '料金' : 'Pricing'}
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  {currentLanguage === 'zh-TW' ? '退出登录' : currentLanguage === 'ja' ? 'ログアウト' : 'Sign Out'}
+                </button>
+              </div>
+            )}
+          </div>
         ) : (
+          // User is not logged in - show navigation links
           <div className='flex space-x-4 sm:space-x-8 lg:space-x-10'>
             <Link
               href='/'
