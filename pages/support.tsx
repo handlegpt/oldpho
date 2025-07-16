@@ -18,7 +18,7 @@ const Support: NextPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
 
-  const getSupportText = (key: string) => {
+  const getSupportText = (key: string): string | any[] => {
     const texts = {
       title: {
         'en': 'Help & Support',
