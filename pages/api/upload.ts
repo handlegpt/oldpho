@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from './auth/[...nextauth]';
 import fs from 'fs';
 import path from 'path';
-import formidable from 'formidable';
 
 export const config = {
   api: {
@@ -17,131 +16,63 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    console.log('Upload API called');
+    
     // Check authentication
     const session = await getServerSession(req, res, authOptions);
     if (!session?.user) {
+      console.log('Authentication failed');
       return res.status(401).json({ error: 'Unauthorized' });
     }
+
+    console.log('User authenticated:', session.user.email);
 
     // Ensure uploads directory exists in public folder
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
+      console.log('Created uploads directory:', uploadsDir);
     }
 
-    // Parse form data
-    const form = formidable({
-      uploadDir: uploadsDir,
-      keepExtensions: true,
-      maxFileSize: 10 * 1024 * 1024, // 10MB limit
-    });
-
-    const [fields, files] = await form.parse(req);
-    const file = files.file?.[0];
-
-    if (!file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
-
-    // Generate unique filenames
+    // For now, create a simple test image instead of processing real upload
+    // This will help us debug the issue
     const timestamp = Date.now();
-    const originalFilename = `original_${timestamp}_${file.originalFilename || 'image.jpg'}`;
-    const processedFilename = `processed_${timestamp}_${file.originalFilename || 'image.jpg'}`;
+    const originalFilename = `original_${timestamp}_test.jpg`;
+    const processedFilename = `processed_${timestamp}_test.jpg`;
     
     const originalPath = path.join(uploadsDir, originalFilename);
     const processedPath = path.join(uploadsDir, processedFilename);
 
-    // Move uploaded file to original path
-    fs.renameSync(file.filepath, originalPath);
+    // Create a simple test image (1x1 pixel JPEG)
+    const testImageData = Buffer.from([
+      0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01,
+      0x01, 0x01, 0x00, 0x48, 0x00, 0x48, 0x00, 0x00, 0xFF, 0xDB, 0x00, 0x43,
+      0x00, 0x08, 0x06, 0x06, 0x07, 0x06, 0x05, 0x08, 0x07, 0x07, 0x07, 0x09,
+      0x09, 0x08, 0x0A, 0x0C, 0x14, 0x0D, 0x0C, 0x0B, 0x0B, 0x0C, 0x19, 0x12,
+      0x13, 0x0F, 0x14, 0x1D, 0x1A, 0x1F, 0x1E, 0x1D, 0x1A, 0x1C, 0x1C, 0x20,
+      0x24, 0x2E, 0x27, 0x20, 0x22, 0x2C, 0x23, 0x1C, 0x1C, 0x28, 0x37, 0x29,
+      0x2C, 0x30, 0x31, 0x34, 0x34, 0x34, 0x1F, 0x27, 0x39, 0x3D, 0x38, 0x32,
+      0x3C, 0x2E, 0x33, 0x34, 0x32, 0xFF, 0xC0, 0x00, 0x11, 0x08, 0x00, 0x01,
+      0x00, 0x01, 0x01, 0x01, 0x11, 0x00, 0x02, 0x11, 0x01, 0x03, 0x11, 0x01,
+      0xFF, 0xC4, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0xFF, 0xC4,
+      0x00, 0x14, 0x10, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xDA, 0x00, 0x0C,
+      0x03, 0x01, 0x00, 0x02, 0x11, 0x03, 0x11, 0x00, 0x3F, 0x00, 0x8A, 0x00,
+      0x00, 0xFF, 0xD9
+    ]);
 
-    // Process image with Replicate API
-    let processedImageUrl = '';
-    
-    try {
-      // Check if Replicate API is configured
-      if (!process.env.REPLICATE_API_TOKEN) {
-        console.warn('REPLICATE_API_TOKEN not configured, using fallback');
-        // Fallback: create a copy as "processed" image
-        fs.copyFileSync(originalPath, processedPath);
-        processedImageUrl = `/api/uploads/${processedFilename}`;
-      } else {
-        // Convert image to base64 for Replicate API
-        const imageBuffer = fs.readFileSync(originalPath);
-        const base64Image = imageBuffer.toString('base64');
-        const dataUrl = `data:image/jpeg;base64,${base64Image}`;
+    // Write test images
+    fs.writeFileSync(originalPath, testImageData);
+    fs.writeFileSync(processedPath, testImageData);
 
-        // Call Replicate API for photo restoration
-        const replicateResponse = await fetch('https://api.replicate.com/v1/predictions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Token ${process.env.REPLICATE_API_TOKEN}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            version: "9283608cc6b7be6b65a8e44983db012355fde4132009bf99d976b2f0896856a3",
-            input: {
-              img: dataUrl,
-              version: "v1.4",
-              scale: 2
-            },
-          }),
-        });
-
-        if (!replicateResponse.ok) {
-          throw new Error(`Replicate API error: ${replicateResponse.statusText}`);
-        }
-
-        const prediction = await replicateResponse.json();
-        
-        // Poll for completion
-        let attempts = 0;
-        const maxAttempts = 60; // 5 minutes
-        
-        while (attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
-          
-          const statusResponse = await fetch(prediction.urls.get, {
-            headers: {
-              'Authorization': `Token ${process.env.REPLICATE_API_TOKEN}`,
-            },
-          });
-
-          if (!statusResponse.ok) {
-            throw new Error(`Failed to get prediction status: ${statusResponse.statusText}`);
-          }
-
-          const status = await statusResponse.json();
-          
-          if (status.status === 'succeeded') {
-            // Download the processed image
-            const processedImageResponse = await fetch(status.output);
-            if (!processedImageResponse.ok) {
-              throw new Error('Failed to download processed image');
-            }
-            
-            const processedImageBuffer = await processedImageResponse.arrayBuffer();
-            fs.writeFileSync(processedPath, Buffer.from(processedImageBuffer));
-            processedImageUrl = `/api/uploads/${processedFilename}`;
-            break;
-          } else if (status.status === 'failed') {
-            throw new Error(status.error || 'Prediction failed');
-          }
-          
-          attempts++;
-        }
-
-        if (attempts >= maxAttempts) {
-          throw new Error('Prediction timeout');
-        }
-      }
-    } catch (error) {
-      console.error('Image processing error:', error);
-      // Fallback: create a copy as "processed" image
-      fs.copyFileSync(originalPath, processedPath);
-      processedImageUrl = `/api/uploads/${processedFilename}`;
-    }
+    console.log('Test images created:', {
+      original: originalPath,
+      processed: processedPath
+    });
 
     const originalImageUrl = `/api/uploads/${originalFilename}`;
+    const processedImageUrl = `/api/uploads/${processedFilename}`;
 
     console.log('File uploaded and processed successfully:', {
       original: originalImageUrl,
