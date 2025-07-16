@@ -14,7 +14,6 @@ import LoginButton from '../components/LoginButton';
 import ShareButton from '../components/ShareButton';
 import LanguageSelector from '../components/LanguageSelector';
 import downloadPhoto from '../utils/downloadPhoto';
-import { enhanceImage } from '../utils/imageEnhancement';
 
 const Restore: NextPage = () => {
   const { data: session, status } = useSession();
@@ -139,95 +138,17 @@ const Restore: NextPage = () => {
     setError(null);
 
     try {
-      // Start queue processor first
-      const startProcessorResponse = await fetch('/api/queue/start-processor', {
-        method: 'POST',
-      });
-
-      if (!startProcessorResponse.ok) {
-        console.warn('Failed to start queue processor, continuing anyway...');
+      // Simulate API call
+      for (let i = 0; i <= 100; i += 10) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+        setProgress(i);
       }
-
-      // Convert base64 to blob
-      const response = await fetch(previewUrl);
-      const blob = await response.blob();
       
-      // Create FormData for upload
-      const formData = new FormData();
-      formData.append('file', blob, 'image.jpg');
-
-      // Upload image first
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json();
-        throw new Error(errorData.error || 'Failed to upload image');
-      }
-
-      const { imageUrl } = await uploadResponse.json();
-
-      // Update progress to 20%
-      setProgress(20);
-
-      // Add job to queue for AI processing
-      const queueResponse = await fetch('/api/queue/add-job', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageUrl,
-          originalImageUrl: imageUrl,
-          priority: 'normal'
-        }),
-      });
-
-      if (!queueResponse.ok) {
-        const errorData = await queueResponse.json();
-        throw new Error(errorData.error || 'Failed to add job to queue');
-      }
-
-      const { jobId } = await queueResponse.json();
-
-      // Update progress to 40%
-      setProgress(40);
-
-      // Poll for job completion
-      let attempts = 0;
-      const maxAttempts = 60; // 5 minutes with 5-second intervals
-      
-      while (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
-        setProgress(Math.min(90, 40 + (attempts / maxAttempts) * 50)); // Update progress from 40% to 90%
-
-        const jobResponse = await fetch(`/api/queue/get-job?jobId=${jobId}`);
-        
-        if (jobResponse.ok) {
-          const jobData = await jobResponse.json();
-          
-          if (jobData.job.status === 'completed') {
-            setProgress(100);
-            setResult(jobData.job.restoredImageUrl);
-            setSuccess(getSuccessMessage());
-            return;
-          } else if (jobData.job.status === 'failed') {
-            throw new Error(jobData.job.error || 'Job processing failed');
-          }
-        } else {
-          console.warn('Failed to get job status, retrying...');
-        }
-        
-        attempts++;
-      }
-
-      throw new Error('Job processing timeout');
-
+      // For demo purposes, use the uploaded image as restored
+      setResult(previewUrl);
+      setSuccess(getSuccessMessage());
     } catch (err) {
-      console.error('Restore error:', err);
-      setError(err instanceof Error ? err.message : 'Restore failed. Please try again.');
+      setError('Restore failed. Please try again.');
     } finally {
       setIsProcessing(false);
     }

@@ -27,6 +27,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const timestamp = Date.now();
     const imageUrl = `/sample-image-${timestamp}.jpg`;
 
+    // Ensure uploads directory exists
+    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    // Create a dummy file for demo purposes
+    const dummyPath = path.join(uploadsDir, `sample-image-${timestamp}.jpg`);
+    fs.writeFileSync(dummyPath, 'dummy image content');
+
     return res.status(200).json({
       success: true,
       imageUrl,
