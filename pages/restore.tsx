@@ -428,6 +428,7 @@ const Restore: NextPage = () => {
                   </button>
                   <ShareButton
                     onClick={handleShare}
+                    currentLanguage={currentLanguage}
                   />
                 </div>
               </div>
