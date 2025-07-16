@@ -260,7 +260,7 @@ export class PhotoRestorationQueue {
 }
 
 // Export singleton instance
-export const photoRestorationQueue = new PhotoRestorationQueue();
+export const photoRestorationQueue = new PhotoRestorationQueue(10);
 
 // Export Redis instance for other uses
 export { redis }; 
