@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import Head from 'next/head';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import LoginButton from '../components/LoginButton';
 import ShareButton from '../components/ShareButton';
 import LanguageSelector from '../components/LanguageSelector';
@@ -16,6 +16,9 @@ export default function Restore() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
+  const [email, setEmail] = useState('');
+  const [isEmailSent, setIsEmailSent] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const t = translations[currentLanguage as Language];
@@ -29,6 +32,32 @@ export default function Restore() {
         setError(null);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setIsSendingEmail(true);
+    setError(null);
+
+    try {
+      const result = await signIn('email', {
+        email,
+        redirect: false,
+        callbackUrl: window.location.href
+      });
+
+      if (result?.error) {
+        setError('Failed to send email. Please try again.');
+      } else {
+        setIsEmailSent(true);
+      }
+    } catch (err) {
+      setError('Failed to send email. Please try again.');
+    } finally {
+      setIsSendingEmail(false);
     }
   };
 
@@ -105,6 +134,37 @@ export default function Restore() {
     }
   };
 
+  const getEmailText = () => {
+    switch (currentLanguage) {
+      case 'zh-TW':
+        return {
+          title: '输入邮箱登录',
+          placeholder: '请输入您的邮箱地址',
+          button: '发送登录链接',
+          sent: '登录链接已发送到您的邮箱',
+          description: '我们将向您的邮箱发送一个登录链接，点击链接即可登录。'
+        };
+      case 'ja':
+        return {
+          title: 'メールアドレスを入力',
+          placeholder: 'メールアドレスを入力してください',
+          button: 'ログインリンクを送信',
+          sent: 'ログインリンクをメールで送信しました',
+          description: 'メールアドレスにログインリンクを送信します。リンクをクリックしてログインしてください。'
+        };
+      default:
+        return {
+          title: 'Enter Email to Login',
+          placeholder: 'Enter your email address',
+          button: 'Send Login Link',
+          sent: 'Login link sent to your email',
+          description: 'We will send a login link to your email. Click the link to sign in.'
+        };
+    }
+  };
+
+  const emailText = getEmailText();
+
   return (
     <>
       <Head>
@@ -140,20 +200,56 @@ export default function Restore() {
               <div className="bg-white rounded-lg shadow-lg p-8 text-center">
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                    {currentLanguage === 'zh-TW' ? '需要登录' : currentLanguage === 'ja' ? 'ログインが必要です' : 'Login Required'}
+                    {emailText.title}
                   </h2>
                   <p className="text-gray-600 mb-6">
-                    {currentLanguage === 'zh-TW' 
-                      ? '请先登录您的账户以使用照片修复功能。' 
-                      : currentLanguage === 'ja' 
-                      ? '写真復元機能を使用するには、まずアカウントにログインしてください。'
-                      : 'Please log in to your account to use the photo restoration feature.'
-                    }
+                    {emailText.description}
                   </p>
                 </div>
-                <div className="flex justify-center">
-                  <LoginButton />
-                </div>
+                
+                {!isEmailSent ? (
+                  <form onSubmit={handleEmailSubmit} className="max-w-md mx-auto">
+                    <div className="mb-4">
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder={emailText.placeholder}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={isSendingEmail || !email}
+                      className="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                    >
+                      {isSendingEmail ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Sending...
+                        </>
+                      ) : (
+                        emailText.button
+                      )}
+                    </button>
+                  </form>
+                ) : (
+                  <div className="max-w-md mx-auto">
+                    <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
+                      <p className="text-green-800">{emailText.sent}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setIsEmailSent(false);
+                        setEmail('');
+                      }}
+                      className="text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Send to different email
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               /* Upload Section - Only shown when logged in */

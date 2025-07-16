@@ -19,6 +19,26 @@ const memoryAdapter = {
   useVerificationToken: async (params: any) => null,
 };
 
+// 验证邮箱配置
+const validateEmailConfig = () => {
+  const required = ['EMAIL_SERVER_HOST', 'EMAIL_SERVER_USER', 'EMAIL_SERVER_PASS'];
+  const missing = required.filter(key => !process.env[key]);
+  
+  if (missing.length > 0) {
+    console.error('Missing email configuration:', missing);
+    return false;
+  }
+  
+  console.log('Email configuration validated:', {
+    host: process.env.EMAIL_SERVER_HOST,
+    port: process.env.EMAIL_SERVER_PORT,
+    user: process.env.EMAIL_SERVER_USER,
+    from: process.env.EMAIL_FROM
+  });
+  
+  return true;
+};
+
 export default NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
   adapter: memoryAdapter,
@@ -35,9 +55,48 @@ export default NextAuth({
         secure: false, // 587端口使用STARTTLS
         tls: {
           rejectUnauthorized: false
-        }
+        },
+        requireTLS: true,
+        connectionTimeout: 30000, // 30秒超时
+        greetingTimeout: 30000,
+        socketTimeout: 30000
       },
       from: process.env.EMAIL_FROM || 'OldPho <hello@oldpho.com>',
+      maxAge: 10 * 60, // 10分钟
+      sendVerificationRequest: async ({ identifier, url, provider }) => {
+        console.log('Sending verification email to:', identifier);
+        console.log('Email URL:', url);
+        
+        try {
+          const { server, from } = provider;
+          const nodemailer = require('nodemailer');
+          
+          const transport = nodemailer.createTransport(server);
+          
+          const result = await transport.sendMail({
+            to: identifier,
+            from,
+            subject: 'OldPho - 登录验证',
+            text: `请点击以下链接登录 OldPho：\n\n${url}\n\n如果您没有请求此邮件，请忽略。`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #333;">OldPho 登录验证</h2>
+                <p>请点击下面的按钮登录您的账户：</p>
+                <a href="${url}" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">登录 OldPho</a>
+                <p>或者复制以下链接到浏览器：</p>
+                <p style="word-break: break-all; color: #666;">${url}</p>
+                <p style="color: #999; font-size: 12px;">如果您没有请求此邮件，请忽略。</p>
+              </div>
+            `
+          });
+          
+          console.log('Email sent successfully:', result.messageId);
+          return result;
+        } catch (error) {
+          console.error('Email sending failed:', error);
+          throw error;
+        }
+      }
     }),
   ],
   
@@ -45,5 +104,34 @@ export default NextAuth({
     strategy: 'jwt',
   },
   
-  debug: process.env.NODE_ENV === 'development',
-}); 
+  debug: true, // 启用调试模式
+  logger: {
+    error(code, ...message) {
+      console.error('NextAuth Error:', code, ...message);
+    },
+    warn(code, ...message) {
+      console.warn('NextAuth Warning:', code, ...message);
+    },
+    debug(code, ...message) {
+      console.log('NextAuth Debug:', code, ...message);
+    }
+  },
+  
+  events: {
+    async signIn({ user, account, profile, isNewUser }) {
+      console.log('User signed in:', user.email);
+    },
+    async signOut({ session, token }) {
+      console.log('User signed out');
+    },
+    async createUser({ user }) {
+      console.log('New user created:', user.email);
+    },
+    async linkAccount({ user, account, profile }) {
+      console.log('Account linked:', user.email);
+    }
+  }
+});
+
+// 验证配置
+validateEmailConfig(); 
