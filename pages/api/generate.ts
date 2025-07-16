@@ -12,7 +12,7 @@ export default async function handler(
 
   try {
     // Get user session
-    const session = await getServerSession(req, res);
+    const session = await getServerSession(req, res, {});
     
     if (!session || !session.user) {
       const errorDetails = getErrorDetails({ message: 'Authentication required' });

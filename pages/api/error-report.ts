@@ -24,7 +24,7 @@ export default async function handler(
 
   try {
     // 获取用户会话
-    const session = await getServerSession(req, res);
+    const session = await getServerSession(req, res, {});
     
     const errorReport: ErrorReport = {
       ...req.body,
