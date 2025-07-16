@@ -15,18 +15,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    // Get job ID from request body
     const { jobId } = req.body;
-
-    if (!jobId) {
+    if (!jobId || typeof jobId !== 'string') {
       return res.status(400).json({ error: 'Job ID is required' });
     }
 
-    const userId = session.user.id || session.user.email!;
+    // Get user ID from session
+    const userId = session.user.email!;
 
     // Cancel job
-    const cancelled = await photoRestorationQueue.cancelJob(jobId, userId);
+    const result = await photoRestorationQueue.cancelJob(jobId, userId);
 
-    if (!cancelled) {
+    if (!result) {
       return res.status(400).json({ 
         error: 'Job could not be cancelled. It may already be processing or completed.' 
       });

@@ -15,13 +15,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    // Get job ID from query
     const { jobId } = req.query;
-
     if (!jobId || typeof jobId !== 'string') {
       return res.status(400).json({ error: 'Job ID is required' });
     }
 
-    // Get job details
+    // Get user ID from session
+    const userId = session.user.email!;
+
+    // Get job from queue
     const job = await photoRestorationQueue.getJob(jobId);
 
     if (!job) {
@@ -29,7 +32,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Check if user owns this job
-    const userId = session.user.id || session.user.email!;
     if (job.userId !== userId) {
       return res.status(403).json({ error: 'Access denied' });
     }

@@ -15,9 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const userId = session.user.id || session.user.email!;
+    // Get user ID from session
+    const userId = session.user.email!;
 
-    // Get user's jobs
+    // Get user's jobs from queue
     const jobs = await photoRestorationQueue.getUserJobs(userId);
 
     // Get queue statistics

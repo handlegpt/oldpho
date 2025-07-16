@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Add job to queue
     const jobId = await photoRestorationQueue.addJob({
-      userId: session.user.id || session.user.email!,
+      userId: session.user.email!,
       userEmail: session.user.email!,
       imageUrl,
       originalImageUrl,
