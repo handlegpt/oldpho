@@ -21,8 +21,8 @@ ENV NODE_ENV=production
 # 复制 package.json 和 package-lock.json
 COPY package*.json ./
 
-# 安装依赖（使用更高效的安装策略）
-RUN npm ci --only=production --prefer-offline --no-audit --progress=false || npm install --only=production --prefer-offline --no-audit --progress=false
+# 安装所有依赖（包括devDependencies，构建时需要TypeScript）
+RUN npm ci --prefer-offline --no-audit --progress=false || npm install --prefer-offline --no-audit --progress=false
 
 # 复制源代码
 COPY . .
