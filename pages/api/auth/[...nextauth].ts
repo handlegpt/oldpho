@@ -25,8 +25,19 @@ export default NextAuth({
   
   providers: [
     EmailProvider({
-      server: process.env.EMAIL_SERVER || 'smtp://user:pass@smtp.example.com:587',
-      from: process.env.EMAIL_FROM || 'noreply@example.com',
+      server: {
+        host: process.env.EMAIL_SERVER_HOST || 'smtp.spacemail.com',
+        port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
+        auth: {
+          user: process.env.EMAIL_SERVER_USER,
+          pass: process.env.EMAIL_SERVER_PASS
+        },
+        secure: false, // 587端口使用STARTTLS
+        tls: {
+          rejectUnauthorized: false
+        }
+      },
+      from: process.env.EMAIL_FROM || 'OldPho <hello@oldpho.com>',
     }),
   ],
   
