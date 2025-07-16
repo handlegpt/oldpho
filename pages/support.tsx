@@ -221,19 +221,26 @@ const Support: NextPage = () => {
     }, 1000);
   };
 
-  const renderFAQTab = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">{getSupportText('faqTitle')}</h2>
-      <div className="space-y-4">
-        {getSupportText('faqItems').map((item: any, index: number) => (
-          <AnimatedCard key={index} className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">{item.question}</h3>
-            <p className="text-gray-700 leading-relaxed">{item.answer}</p>
-          </AnimatedCard>
-        ))}
+  const renderFAQTab = () => {
+    const faqItems = getSupportText('faqItems');
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">{getSupportText('faqTitle')}</h2>
+        <div className="space-y-4">
+          {Array.isArray(faqItems) ? (
+            faqItems.map((item: any, index: number) => (
+              <AnimatedCard key={index} className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">{item.question}</h3>
+                <p className="text-gray-700 leading-relaxed">{item.answer}</p>
+              </AnimatedCard>
+            ))
+          ) : (
+            <div className="text-gray-500">暂无常见问题</div>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderContactTab = () => (
     <div className="space-y-6">
@@ -309,26 +316,33 @@ const Support: NextPage = () => {
     </div>
   );
 
-  const renderHowToUseTab = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">{getSupportText('howToUseTitle')}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {getSupportText('howToUseSteps').map((step: any, index: number) => (
-          <AnimatedCard key={index} className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-                {index + 1}
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-gray-700 leading-relaxed">{step.description}</p>
-              </div>
-            </div>
-          </AnimatedCard>
-        ))}
+  const renderHowToUseTab = () => {
+    const steps = getSupportText('howToUseSteps');
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">{getSupportText('howToUseTitle')}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {Array.isArray(steps) ? (
+            steps.map((step: any, index: number) => (
+              <AnimatedCard key={index} className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                    {index + 1}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{step.title}</h3>
+                    <p className="text-gray-700 leading-relaxed">{step.description}</p>
+                  </div>
+                </div>
+              </AnimatedCard>
+            ))
+          ) : (
+            <div className="text-gray-500">暂无使用指南</div>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <>
