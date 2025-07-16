@@ -2,44 +2,6 @@ import NextAuth, { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import EmailProvider from 'next-auth/providers/email';
 
-// 验证环境变量
-const validateConfig = () => {
-  const errors = [];
-  
-  if (!process.env.NEXTAUTH_SECRET) {
-    errors.push('NEXTAUTH_SECRET is required');
-  }
-  
-  if (!process.env.NEXTAUTH_URL) {
-    errors.push('NEXTAUTH_URL is required');
-  }
-  
-  // 检查是否有至少一个认证提供者
-  const hasGoogleProvider = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
-  const hasEmailProvider = process.env.EMAIL_SERVER && process.env.EMAIL_FROM;
-  
-  if (!hasGoogleProvider && !hasEmailProvider) {
-    errors.push('At least one authentication provider (Google or Email) must be configured');
-  }
-  
-  return errors;
-};
-
-// 动态获取NEXTAUTH_URL
-const getNextAuthUrl = () => {
-  // 如果环境变量中有NEXTAUTH_URL，使用它
-  if (process.env.NEXTAUTH_URL) {
-    return process.env.NEXTAUTH_URL;
-  }
-  
-  // 否则根据环境推断
-  if (process.env.NODE_ENV === 'production') {
-    return 'https://oldpho.com';
-  }
-  
-  return 'http://localhost:3001';
-};
-
 export const authOptions: NextAuthOptions = {
   providers: [
     // Google Provider (可选)
@@ -50,7 +12,7 @@ export const authOptions: NextAuthOptions = {
       })
     ] : []),
     
-    // Email Provider (始终包含，如果没有配置会显示错误)
+    // Email Provider (始终包含)
     EmailProvider({
       server: process.env.EMAIL_SERVER || 'smtp://user:pass@smtp.example.com:587',
       from: process.env.EMAIL_FROM || 'noreply@example.com',
@@ -96,16 +58,6 @@ export const authOptions: NextAuthOptions = {
     },
   },
   
-  // Event handlers
-  events: {
-    async signIn(message: any) {
-      console.log('SignIn event:', message);
-    },
-    async signOut(message: any) {
-      console.log('SignOut event:', message);
-    },
-  },
-  
   // Page configuration
   pages: {
     signIn: '/auth/signin',
@@ -113,13 +65,5 @@ export const authOptions: NextAuthOptions = {
     verifyRequest: '/auth/verify-request',
   },
 };
-
-// 验证配置
-const configErrors = validateConfig();
-if (configErrors.length > 0) {
-  console.error('NextAuth configuration errors:', configErrors);
-  // 不抛出错误，让应用继续运行
-  console.warn('NextAuth configuration warnings:', configErrors);
-}
 
 export default NextAuth(authOptions);
