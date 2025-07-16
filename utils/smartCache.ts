@@ -146,7 +146,8 @@ class SmartCacheManager {
     switch (this.strategy) {
       case CacheStrategy.LRU:
         // 最近最少使用
-        for (const [key, item] of this.cache.entries()) {
+        const lruEntries = Array.from(this.cache.entries());
+        for (const [key, item] of lruEntries) {
           if (item.lastAccessed < minValue) {
             minValue = item.lastAccessed;
             keyToEvict = key;
@@ -156,7 +157,8 @@ class SmartCacheManager {
 
       case CacheStrategy.LFU:
         // 最少使用频率
-        for (const [key, item] of this.cache.entries()) {
+        const lfuEntries = Array.from(this.cache.entries());
+        for (const [key, item] of lfuEntries) {
           if (item.accessCount < minValue) {
             minValue = item.accessCount;
             keyToEvict = key;
@@ -172,7 +174,8 @@ class SmartCacheManager {
 
       case CacheStrategy.COST:
         // 基于成本
-        for (const [key, item] of this.cache.entries()) {
+        const costEntries = Array.from(this.cache.entries());
+        for (const [key, item] of costEntries) {
           if (item.cost > minValue) {
             minValue = item.cost;
             keyToEvict = key;
@@ -280,17 +283,15 @@ class SmartCacheManager {
     const item = this.cache.get(key);
     if (!item) return null;
     
-    return {
-      ...item,
-      isExpired: Date.now() - item.timestamp > item.ttl
-    };
+    return item;
   }
 
   // 导出缓存数据（用于持久化）
   export(): Record<string, CacheItem<any>> {
     const data: Record<string, CacheItem<any>> = {};
     
-    for (const [key, item] of this.cache.entries()) {
+    const entries = Array.from(this.cache.entries());
+    for (const [key, item] of entries) {
       // 只导出未过期的项目
       if (Date.now() - item.timestamp <= item.ttl) {
         data[key] = item;
