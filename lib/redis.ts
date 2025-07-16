@@ -120,6 +120,21 @@ class MemoryQueue {
     this.processingJobs.delete(jobId);
     return true;
   }
+
+  async cleanupOldJobs(): Promise<number> {
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+    let cleaned = 0;
+
+    for (const [jobId, job] of this.jobs.entries()) {
+      if (job.createdAt < oneDayAgo && job.status !== JOB_STATUS.PROCESSING) {
+        this.jobs.delete(jobId);
+        cleaned++;
+      }
+    }
+
+    return cleaned;
+  }
 }
 
 // Queue configuration
@@ -471,19 +486,7 @@ export class PhotoRestorationQueue {
   // Cleanup old jobs
   async cleanupOldJobs(): Promise<number> {
     if (memoryQueue) {
-      // Memory queue cleanup
-      const now = Date.now();
-      const oneDayAgo = now - 24 * 60 * 60 * 1000;
-      let cleaned = 0;
-
-      for (const [jobId, job] of memoryQueue.jobs.entries()) {
-        if (job.createdAt < oneDayAgo && job.status !== JOB_STATUS.PROCESSING) {
-          memoryQueue.jobs.delete(jobId);
-          cleaned++;
-        }
-      }
-
-      return cleaned;
+      return memoryQueue.cleanupOldJobs();
     }
 
     if (!redisClient) {
