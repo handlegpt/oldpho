@@ -46,20 +46,20 @@ export default NextAuth({
   providers: [
     EmailProvider({
       server: {
-        host: process.env.EMAIL_SERVER_HOST || 'smtp.spacemail.com',
-        port: parseInt(process.env.EMAIL_SERVER_PORT || '465'),
+        host: process.env.EMAIL_SERVER_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
         auth: {
           user: process.env.EMAIL_SERVER_USER,
           pass: process.env.EMAIL_SERVER_PASS
         },
-        secure: true, // 465端口使用SSL
+        secure: false, // 587端口使用STARTTLS
         tls: {
           rejectUnauthorized: false
         },
         requireTLS: true,
-        connectionTimeout: 30000, // 30秒超时
-        greetingTimeout: 30000,
-        socketTimeout: 30000
+        connectionTimeout: 60000, // 60秒超时
+        greetingTimeout: 60000,
+        socketTimeout: 60000
       },
       from: process.env.EMAIL_FROM || 'OldPho <hello@oldpho.com>',
       maxAge: 10 * 60, // 10分钟
