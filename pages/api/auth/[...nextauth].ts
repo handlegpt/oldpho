@@ -1,5 +1,6 @@
 import NextAuth from 'next-auth';
 import EmailProvider from 'next-auth/providers/email';
+import GoogleProvider from 'next-auth/providers/google';
 
 // Simple in-memory adapter for development
 const memoryAdapter = {
@@ -19,14 +20,11 @@ const memoryAdapter = {
   useVerificationToken: async (params: any) => null,
 };
 
-// 获取邮件语言内容
+// Get email content based on language preference
 const getEmailContent = (email: string, url: string) => {
-  // 根据邮箱域名判断语言偏好
   const domain = email.split('@')[1]?.toLowerCase();
   
-  // 中文邮箱域名
   const chineseDomains = ['qq.com', '163.com', '126.com', 'sina.com', 'sohu.com', 'yeah.net', 'gmail.com'];
-  // 日文邮箱域名
   const japaneseDomains = ['yahoo.co.jp', 'docomo.ne.jp', 'ezweb.ne.jp', 'softbank.ne.jp'];
   
   if (chineseDomains.includes(domain)) {
@@ -60,7 +58,6 @@ const getEmailContent = (email: string, url: string) => {
       `
     };
   } else {
-    // 默认英文
     return {
       subject: 'OldPho - Login Verification',
       text: `Click the following link to sign in to OldPho:\n\n${url}\n\nIf you didn't request this email, please ignore it.`,
@@ -78,7 +75,7 @@ const getEmailContent = (email: string, url: string) => {
   }
 };
 
-// 验证邮箱配置
+// Validate email configuration
 const validateEmailConfig = () => {
   const required = ['EMAIL_SERVER_HOST', 'EMAIL_SERVER_USER', 'EMAIL_SERVER_PASS'];
   const missing = required.filter(key => !process.env[key]);
@@ -98,11 +95,26 @@ const validateEmailConfig = () => {
   return true;
 };
 
-export default NextAuth({
-  secret: process.env.NEXTAUTH_SECRET,
-  adapter: memoryAdapter,
+// Validate Google OAuth configuration
+const validateGoogleConfig = () => {
+  const required = ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'];
+  const missing = required.filter(key => !process.env[key]);
   
-  providers: [
+  if (missing.length > 0) {
+    console.warn('Google OAuth not configured:', missing);
+    return false;
+  }
+  
+  console.log('Google OAuth configuration validated');
+  return true;
+};
+
+// Configure providers
+const providers = [];
+
+// Add Email provider
+if (validateEmailConfig()) {
+  providers.push(
     EmailProvider({
       server: {
         host: process.env.EMAIL_SERVER_HOST || 'smtp.gmail.com',
@@ -111,20 +123,19 @@ export default NextAuth({
           user: process.env.EMAIL_SERVER_USER,
           pass: process.env.EMAIL_SERVER_PASS
         },
-        secure: false, // 587端口使用STARTTLS
+        secure: false,
         tls: {
           rejectUnauthorized: false
         },
         requireTLS: true,
-        connectionTimeout: 60000, // 60秒超时
+        connectionTimeout: 60000,
         greetingTimeout: 60000,
         socketTimeout: 60000
       },
       from: process.env.EMAIL_FROM || 'OldPho <hello@oldpho.com>',
-      maxAge: 10 * 60, // 10分钟
+      maxAge: 10 * 60,
       sendVerificationRequest: async ({ identifier, url, provider }: any) => {
         console.log('Sending verification email to:', identifier);
-        console.log('Email URL:', url);
         
         try {
           const { server, from } = provider;
@@ -132,12 +143,10 @@ export default NextAuth({
           
           const transport = nodemailer.createTransport(server);
           
-          // 验证连接
           console.log('Verifying transporter connection...');
           await transport.verify();
           console.log('Transporter verified successfully');
           
-          // 根据邮箱获取多语言内容
           const emailContent = getEmailContent(identifier, url);
           
           const result = await transport.sendMail({
@@ -152,22 +161,33 @@ export default NextAuth({
           return result;
         } catch (error: any) {
           console.error('Email sending failed:', error);
-          console.error('Error details:', {
-            message: error.message,
-            code: error.code,
-            command: error.command
-          });
           throw error;
         }
       }
-    }),
-  ],
+    })
+  );
+}
+
+// Add Google OAuth provider if configured
+if (validateGoogleConfig()) {
+  providers.push(
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    })
+  );
+}
+
+export default NextAuth({
+  secret: process.env.NEXTAUTH_SECRET,
+  adapter: memoryAdapter,
+  providers,
   
   session: {
     strategy: 'jwt',
   },
   
-  debug: true, // 启用调试模式
+  debug: process.env.NODE_ENV === 'development',
   logger: {
     error(code: any, ...message: any[]) {
       console.error('NextAuth Error:', code, ...message);
@@ -176,7 +196,9 @@ export default NextAuth({
       console.warn('NextAuth Warning:', code, ...message);
     },
     debug(code: any, ...message: any[]) {
-      console.log('NextAuth Debug:', code, ...message);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('NextAuth Debug:', code, ...message);
+      }
     }
   },
   
@@ -193,8 +215,14 @@ export default NextAuth({
     async linkAccount({ user, account, profile }: any) {
       console.log('Account linked:', user.email);
     }
+  },
+  
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/error',
   }
 });
 
-// 验证配置
-validateEmailConfig(); 
+// Validate configuration on startup
+validateEmailConfig();
+validateGoogleConfig(); 
