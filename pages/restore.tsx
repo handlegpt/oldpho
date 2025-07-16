@@ -14,6 +14,7 @@ export default function Restore() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [restoredImage, setRestoredImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
   const [email, setEmail] = useState('');
@@ -41,23 +42,81 @@ export default function Restore() {
 
     setIsSendingEmail(true);
     setError(null);
+    setSuccess(null);
 
     try {
+      console.log('Attempting to send email to:', email);
+      
       const result = await signIn('email', {
         email,
         redirect: false,
         callbackUrl: window.location.href
       });
 
+      console.log('SignIn result:', result);
+
       if (result?.error) {
-        setError('Failed to send email. Please try again.');
+        console.error('Email sending failed:', result.error);
+        setError(getErrorMessage(result.error));
       } else {
+        console.log('Email sent successfully');
         setIsEmailSent(true);
+        setSuccess(getSuccessMessage());
       }
     } catch (err) {
-      setError('Failed to send email. Please try again.');
+      console.error('Email sending error:', err);
+      setError(getErrorMessage('unknown'));
     } finally {
       setIsSendingEmail(false);
+    }
+  };
+
+  const getErrorMessage = (errorCode: string) => {
+    switch (currentLanguage) {
+      case 'zh-TW':
+        switch (errorCode) {
+          case 'EMAIL_REQUIRES_ADAPTER_ERROR':
+            return '邮箱配置错误，请联系管理员';
+          case 'EMAIL_SERVER_ERROR':
+            return '邮箱服务器连接失败，请稍后重试';
+          case 'EMAIL_SEND_ERROR':
+            return '邮件发送失败，请检查邮箱地址';
+          default:
+            return '发送失败，请稍后重试';
+        }
+      case 'ja':
+        switch (errorCode) {
+          case 'EMAIL_REQUIRES_ADAPTER_ERROR':
+            return 'メール設定エラーです。管理者にお問い合わせください';
+          case 'EMAIL_SERVER_ERROR':
+            return 'メールサーバー接続に失敗しました。後でもう一度お試しください';
+          case 'EMAIL_SEND_ERROR':
+            return 'メール送信に失敗しました。メールアドレスを確認してください';
+          default:
+            return '送信に失敗しました。後でもう一度お試しください';
+        }
+      default:
+        switch (errorCode) {
+          case 'EMAIL_REQUIRES_ADAPTER_ERROR':
+            return 'Email configuration error, please contact administrator';
+          case 'EMAIL_SERVER_ERROR':
+            return 'Email server connection failed, please try again later';
+          case 'EMAIL_SEND_ERROR':
+            return 'Email sending failed, please check email address';
+          default:
+            return 'Sending failed, please try again later';
+        }
+    }
+  };
+
+  const getSuccessMessage = () => {
+    switch (currentLanguage) {
+      case 'zh-TW':
+        return `登录链接已发送到 ${email}，请检查您的邮箱（包括垃圾邮件文件夹）`;
+      case 'ja':
+        return `ログインリンクを ${email} に送信しました。メールボックス（スパムフォルダーも含む）を確認してください`;
+      default:
+        return `Login link sent to ${email}, please check your email (including spam folder)`;
     }
   };
 
@@ -88,6 +147,7 @@ export default function Restore() {
     setUploadedImage(null);
     setRestoredImage(null);
     setError(null);
+    setSuccess(null);
     setProgress(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -142,7 +202,8 @@ export default function Restore() {
           placeholder: '请输入您的邮箱地址',
           button: '发送登录链接',
           sent: '登录链接已发送到您的邮箱',
-          description: '我们将向您的邮箱发送一个登录链接，点击链接即可登录。'
+          description: '我们将向您的邮箱发送一个登录链接，点击链接即可登录。',
+          resend: '发送到其他邮箱'
         };
       case 'ja':
         return {
@@ -150,7 +211,8 @@ export default function Restore() {
           placeholder: 'メールアドレスを入力してください',
           button: 'ログインリンクを送信',
           sent: 'ログインリンクをメールで送信しました',
-          description: 'メールアドレスにログインリンクを送信します。リンクをクリックしてログインしてください。'
+          description: 'メールアドレスにログインリンクを送信します。リンクをクリックしてログインしてください。',
+          resend: '別のメールアドレスに送信'
         };
       default:
         return {
@@ -158,7 +220,8 @@ export default function Restore() {
           placeholder: 'Enter your email address',
           button: 'Send Login Link',
           sent: 'Login link sent to your email',
-          description: 'We will send a login link to your email. Click the link to sign in.'
+          description: 'We will send a login link to your email. Click the link to sign in.',
+          resend: 'Send to different email'
         };
     }
   };
@@ -227,7 +290,7 @@ export default function Restore() {
                       {isSendingEmail ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Sending...
+                          {currentLanguage === 'zh-TW' ? '发送中...' : currentLanguage === 'ja' ? '送信中...' : 'Sending...'}
                         </>
                       ) : (
                         emailText.button
@@ -237,17 +300,27 @@ export default function Restore() {
                 ) : (
                   <div className="max-w-md mx-auto">
                     <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
-                      <p className="text-green-800">{emailText.sent}</p>
+                      <p className="text-green-800">{success}</p>
                     </div>
                     <button
                       onClick={() => {
                         setIsEmailSent(false);
                         setEmail('');
+                        setSuccess(null);
                       }}
                       className="text-blue-600 hover:text-blue-800 underline"
                     >
-                      Send to different email
+                      {emailText.resend}
                     </button>
+                  </div>
+                )}
+
+                {/* Error Message */}
+                {error && (
+                  <div className="mt-4 max-w-md mx-auto">
+                    <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                      <p className="text-red-800">{error}</p>
+                    </div>
                   </div>
                 )}
               </div>
