@@ -195,13 +195,13 @@ if (validateGoogleConfig()) {
   );
 }
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   adapter: memoryAdapter,
   providers,
   
   session: {
-    strategy: 'jwt',
+    strategy: 'jwt' as const,
   },
   
   debug: process.env.NODE_ENV === 'development',
