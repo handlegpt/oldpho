@@ -14,6 +14,7 @@ import LoginButton from '../components/LoginButton';
 import ShareButton from '../components/ShareButton';
 import LanguageSelector from '../components/LanguageSelector';
 import downloadPhoto from '../utils/downloadPhoto';
+import { enhanceImage } from '../utils/imageEnhancement';
 
 const Restore: NextPage = () => {
   const { data: session, status } = useSession();
@@ -138,15 +139,25 @@ const Restore: NextPage = () => {
     setError(null);
 
     try {
-      // Simulate processing with progress updates
-      for (let i = 0; i <= 100; i += 10) {
-        await new Promise(resolve => setTimeout(resolve, 200));
-        setProgress(i);
-      }
+      // Simulate progress updates
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 300);
+
+      // Use the real image enhancement function
+      const enhancedImageUrl = await enhanceImage(previewUrl);
       
-      // For demo purposes, use the uploaded image as restored
-      // In production, this would be the result from the AI processing
-      setResult(previewUrl);
+      clearInterval(progressInterval);
+      setProgress(100);
+      
+      // Set the enhanced image as result
+      setResult(enhancedImageUrl);
       setSuccess(getSuccessMessage());
       
     } catch (err) {
