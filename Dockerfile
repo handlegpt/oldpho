@@ -53,8 +53,8 @@ ENV PUPPETEER_SKIP_DOWNLOAD=true
 # 复制 package.json
 COPY package*.json ./
 
-# 只安装生产依赖
-RUN npm install --omit=dev --prefer-offline --no-audit --progress=false && npm cache clean --force
+# 安装所有依赖（包括开发依赖，确保next-auth正常工作）
+RUN npm install --prefer-offline --no-audit --progress=false && npm cache clean --force
 
 # 复制构建产物
 COPY --from=builder /app/.next/standalone ./
