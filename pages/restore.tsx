@@ -146,7 +146,10 @@ const Restore: NextPage = () => {
       const formData = new FormData();
       formData.append('file', blob, 'image.jpg');
 
-      // Upload and process image in one step
+      // Update progress to 10%
+      setProgress(10);
+
+      // Upload and process image
       const uploadResponse = await fetch('/api/upload', {
         method: 'POST',
         body: formData
@@ -156,6 +159,9 @@ const Restore: NextPage = () => {
         const errorData = await uploadResponse.json();
         throw new Error(errorData.error || 'Failed to upload and process image');
       }
+
+      // Update progress to 50%
+      setProgress(50);
 
       const { processedImageUrl } = await uploadResponse.json();
 
@@ -174,6 +180,14 @@ const Restore: NextPage = () => {
         userFriendlyError = currentLanguage === 'zh-TW' ? '图片上传失败，请重试' : 
                            currentLanguage === 'ja' ? '画像のアップロードに失敗しました。もう一度お試しください' :
                            'Image upload failed, please try again';
+      } else if (errorMessage.includes('Replicate API error')) {
+        userFriendlyError = currentLanguage === 'zh-TW' ? 'AI处理服务暂时不可用，请稍后重试' : 
+                           currentLanguage === 'ja' ? 'AI処理サービスが一時的に利用できません。後でもう一度お試しください' :
+                           'AI processing service temporarily unavailable, please try again later';
+      } else if (errorMessage.includes('Prediction timeout')) {
+        userFriendlyError = currentLanguage === 'zh-TW' ? '图片处理超时，请尝试较小的图片' : 
+                           currentLanguage === 'ja' ? '画像処理がタイムアウトしました。小さな画像でお試しください' :
+                           'Image processing timeout, please try with a smaller image';
       } else if (errorMessage.includes('Internal server error')) {
         userFriendlyError = currentLanguage === 'zh-TW' ? '服务器内部错误，请稍后重试' : 
                            currentLanguage === 'ja' ? 'サーバー内部エラーです。後でもう一度お試しください' :

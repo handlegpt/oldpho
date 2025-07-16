@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from './auth/[...nextauth]';
-import { queueProcessor } from '../../lib/queue-processor';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -15,37 +14,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Check Replicate API token
-    const hasReplicateToken = !!process.env.REPLICATE_API_TOKEN;
-    
-    // Check queue processor status
-    const queueStatus = queueProcessor.getStatus();
-    
-    // Check environment variables
-    const envCheck = {
-      REPLICATE_API_TOKEN: hasReplicateToken ? 'Configured' : 'Not configured',
-      NODE_ENV: process.env.NODE_ENV || 'Not set',
-      NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'Not set',
-      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET ? 'Configured' : 'Not configured',
+    const debugInfo = {
+      timestamp: new Date().toISOString(),
+      replicateApiToken: process.env.REPLICATE_API_TOKEN ? 'Configured' : 'Not configured',
+      nodeEnv: process.env.NODE_ENV,
+      nextAuthUrl: process.env.NEXTAUTH_URL,
+      user: session.user.email,
     };
 
-    return res.status(200).json({
-      success: true,
-      replicate: {
-        tokenConfigured: hasReplicateToken,
-        message: hasReplicateToken ? 'Ready to use Replicate API' : 'Replicate API token not configured'
-      },
-      queue: {
-        isRunning: queueStatus.isRunning,
-        checkInterval: queueStatus.checkInterval,
-        message: queueStatus.isRunning ? 'Queue processor is running' : 'Queue processor is not running'
-      },
-      environment: envCheck,
-      timestamp: new Date().toISOString()
-    });
+    // Test Replicate API if token is configured
+    if (process.env.REPLICATE_API_TOKEN) {
+      try {
+        const testResponse = await fetch('https://api.replicate.com/v1/models', {
+          headers: {
+            'Authorization': `Token ${process.env.REPLICATE_API_TOKEN}`,
+          },
+        });
+
+        if (testResponse.ok) {
+          debugInfo.replicateApiStatus = 'Connected';
+        } else {
+          debugInfo.replicateApiStatus = `Error: ${testResponse.status} ${testResponse.statusText}`;
+        }
+      } catch (error) {
+        debugInfo.replicateApiStatus = `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      }
+    } else {
+      debugInfo.replicateApiStatus = 'Not tested (no token)';
+    }
+
+    return res.status(200).json(debugInfo);
 
   } catch (error) {
-    console.error('Debug error:', error);
+    console.error('Debug API error:', error);
     return res.status(500).json({ 
       error: 'Internal server error',
       message: error instanceof Error ? error.message : 'Unknown error'
