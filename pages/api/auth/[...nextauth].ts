@@ -47,12 +47,12 @@ export default NextAuth({
     EmailProvider({
       server: {
         host: process.env.EMAIL_SERVER_HOST || 'smtp.spacemail.com',
-        port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
+        port: parseInt(process.env.EMAIL_SERVER_PORT || '465'),
         auth: {
           user: process.env.EMAIL_SERVER_USER,
           pass: process.env.EMAIL_SERVER_PASS
         },
-        secure: false, // 587端口使用STARTTLS
+        secure: true, // 465端口使用SSL
         tls: {
           rejectUnauthorized: false
         },
