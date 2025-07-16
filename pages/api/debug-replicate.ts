@@ -14,7 +14,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const debugInfo = {
+    const debugInfo: {
+      timestamp: string;
+      replicateApiToken: string;
+      nodeEnv: string | undefined;
+      nextAuthUrl: string | undefined;
+      user: string | null | undefined;
+      replicateApiStatus?: string;
+    } = {
       timestamp: new Date().toISOString(),
       replicateApiToken: process.env.REPLICATE_API_TOKEN ? 'Configured' : 'Not configured',
       nodeEnv: process.env.NODE_ENV,
