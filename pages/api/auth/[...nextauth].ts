@@ -66,12 +66,6 @@ export default NextAuth({
       sendVerificationRequest: async ({ identifier, url, provider }) => {
         console.log('Sending verification email to:', identifier);
         console.log('Email URL:', url);
-        console.log('Provider config:', {
-          host: provider.server.host,
-          port: provider.server.port,
-          user: provider.server.auth.user,
-          secure: provider.server.secure
-        });
         
         try {
           const { server, from } = provider;
@@ -110,7 +104,7 @@ export default NextAuth({
           
           console.log('Email sent successfully:', result.messageId);
           return result;
-        } catch (error) {
+        } catch (error: any) {
           console.error('Email sending failed:', error);
           console.error('Error details:', {
             message: error.message,
@@ -129,28 +123,28 @@ export default NextAuth({
   
   debug: true, // 启用调试模式
   logger: {
-    error(code, ...message) {
+    error(code: any, ...message: any[]) {
       console.error('NextAuth Error:', code, ...message);
     },
-    warn(code, ...message) {
+    warn(code: any, ...message: any[]) {
       console.warn('NextAuth Warning:', code, ...message);
     },
-    debug(code, ...message) {
+    debug(code: any, ...message: any[]) {
       console.log('NextAuth Debug:', code, ...message);
     }
   },
   
   events: {
-    async signIn({ user, account, profile, isNewUser }) {
+    async signIn({ user, account, profile, isNewUser }: any) {
       console.log('User signed in:', user.email);
     },
-    async signOut({ session, token }) {
+    async signOut({ session, token }: any) {
       console.log('User signed out');
     },
-    async createUser({ user }) {
+    async createUser({ user }: any) {
       console.log('New user created:', user.email);
     },
-    async linkAccount({ user, account, profile }) {
+    async linkAccount({ user, account, profile }: any) {
       console.log('Account linked:', user.email);
     }
   }
