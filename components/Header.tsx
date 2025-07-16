@@ -3,15 +3,15 @@ import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { useState, useRef, useEffect } from 'react';
 import LanguageSelector from './LanguageSelector';
-import { Language, translations } from '../utils/translations';
+import { translations } from '../utils/translations';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface HeaderProps {
   photo?: string | undefined;
-  currentLanguage: Language;
-  onLanguageChange: (language: Language) => void;
 }
 
-export default function Header({ photo, currentLanguage, onLanguageChange }: HeaderProps) {
+export default function Header({ photo }: HeaderProps) {
+  const { currentLanguage, setLanguage } = useLanguage();
   const t = translations[currentLanguage];
   const { data: session } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -71,7 +71,7 @@ export default function Header({ photo, currentLanguage, onLanguageChange }: Hea
       <div className='flex items-center space-x-3 sm:space-x-6'>
         <LanguageSelector 
           currentLanguage={currentLanguage}
-          onLanguageChange={onLanguageChange}
+          onLanguageChange={setLanguage}
         />
         
         {session?.user ? (
