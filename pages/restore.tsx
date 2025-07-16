@@ -1,35 +1,41 @@
-import { useState, useRef } from 'react';
+import { NextPage } from 'next';
 import Head from 'next/head';
-import { useSession, signIn } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/router';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import { translations } from '../utils/translations';
+import { useLanguage } from '../contexts/LanguageContext';
+import AnimatedCard from '../components/AnimatedCard';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { Language } from '../types/language';
 import LoginButton from '../components/LoginButton';
 import ShareButton from '../components/ShareButton';
 import LanguageSelector from '../components/LanguageSelector';
-import Header from '../components/Header';
-import { translations, Language } from '../utils/translations';
 import downloadPhoto from '../utils/downloadPhoto';
 
-export default function Restore() {
+const Restore: NextPage = () => {
   const { data: session, status } = useSession();
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [restoredImage, setRestoredImage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const router = useRouter();
+  const { currentLanguage } = useLanguage();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
-  const [email, setEmail] = useState('');
-  const [isEmailSent, setIsEmailSent] = useState(false);
-  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const t = translations[currentLanguage as Language];
+
+  const t = translations[currentLanguage];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setUploadedImage(e.target?.result as string);
+        setPreviewUrl(e.target?.result as string);
         setError(null);
       };
       reader.readAsDataURL(file);
@@ -121,9 +127,9 @@ export default function Restore() {
   };
 
   const handleRestore = async () => {
-    if (!uploadedImage) return;
+    if (!previewUrl) return;
 
-    setIsUploading(true);
+    setIsProcessing(true);
     setProgress(0);
     setError(null);
 
@@ -135,17 +141,17 @@ export default function Restore() {
       }
       
       // For demo purposes, use the uploaded image as restored
-      setRestoredImage(uploadedImage);
+      setResult(previewUrl);
     } catch (err) {
       setError('Restore failed. Please try again.');
     } finally {
-      setIsUploading(false);
+      setIsProcessing(false);
     }
   };
 
   const handleReset = () => {
-    setUploadedImage(null);
-    setRestoredImage(null);
+    setPreviewUrl(null);
+    setResult(null);
     setError(null);
     setSuccess(null);
     setProgress(0);
@@ -159,7 +165,7 @@ export default function Restore() {
   };
 
   const handleShare = () => {
-    if (restoredImage) {
+    if (result) {
       // Use native share API if available
       if (navigator.share) {
         navigator.share({
@@ -177,9 +183,9 @@ export default function Restore() {
   };
 
   const handleDownload = () => {
-    if (restoredImage) {
+    if (result) {
       const filename = `restored_photo_${Date.now()}.jpg`;
-      downloadPhoto(restoredImage, filename);
+      downloadPhoto(result, filename);
     }
   };
 
@@ -347,11 +353,11 @@ export default function Restore() {
                   </p>
                 </div>
 
-                {uploadedImage && (
+                {previewUrl && (
                   <div className="mt-6">
                     <div className="flex justify-center">
                       <img
-                        src={uploadedImage}
+                        src={previewUrl}
                         alt="Uploaded"
                         className="max-w-md max-h-64 object-contain rounded-lg"
                       />
@@ -359,10 +365,10 @@ export default function Restore() {
                     <div className="mt-4 flex justify-center space-x-4">
                       <button
                         onClick={handleRestore}
-                        disabled={isUploading}
+                        disabled={isProcessing}
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                       >
-                        {isUploading ? 'Restoring...' : 'Restore Image'}
+                        {isProcessing ? 'Restoring...' : 'Restore Image'}
                       </button>
                       <button
                         onClick={handleReset}
@@ -374,7 +380,7 @@ export default function Restore() {
                   </div>
                 )}
 
-                {isUploading && (
+                {isProcessing && (
                   <div className="mt-4">
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
@@ -397,14 +403,14 @@ export default function Restore() {
             )}
 
             {/* Results Section */}
-            {restoredImage && (
+            {result && (
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
                   Restored Image
                 </h2>
                 <div className="flex justify-center">
                   <img
-                    src={restoredImage}
+                    src={result}
                     alt="Restored"
                     className="max-w-md max-h-64 object-contain rounded-lg"
                   />
@@ -432,3 +438,5 @@ export default function Restore() {
     </>
   );
 }
+
+export default Restore;

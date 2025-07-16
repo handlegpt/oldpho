@@ -1,28 +1,18 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
-import { useState } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { Language, translations } from '../utils/translations';
-import { getStoredLanguage, setStoredLanguage } from '../utils/languageStorage';
+import { translations } from '../utils/translations';
+import { useLanguage } from '../contexts/LanguageContext';
 import AnimatedCard from '../components/AnimatedCard';
+import { useState } from 'react';
 import { useEffect } from 'react';
 
 const Help: NextPage = () => {
-  const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
+  const { currentLanguage } = useLanguage();
   const [activeFAQ, setActiveFAQ] = useState<number | null>(null);
 
   const t = translations[currentLanguage];
-
-  useEffect(() => {
-    const storedLanguage = getStoredLanguage();
-    setCurrentLanguage(storedLanguage);
-  }, []);
-
-  const handleLanguageChange = (language: Language) => {
-    setCurrentLanguage(language);
-    setStoredLanguage(language);
-  };
 
   const getHelpText = (key: string) => {
     const texts = {
@@ -112,111 +102,105 @@ const Help: NextPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <>
       <Head>
-        <title>Help & Support - OldPho</title>
-        <meta name="description" content="Get help and support for OldPho" />
+        <title>{getHelpText('title')} - OldPho</title>
+        <meta name="description" content="Help and support for OldPho users" />
       </Head>
-      
-      <Header 
-        currentLanguage={currentLanguage}
-        onLanguageChange={handleLanguageChange}
-      />
-      
-      <main className="pt-20 pb-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              {getHelpText('title')}
-            </h1>
-            <p className="text-lg text-gray-600">
-              {getHelpText('subtitle')}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* FAQ Section */}
-            <div>
-              <AnimatedCard className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                  {getHelpText('faq')}
-                </h2>
-                <div className="space-y-4">
-                  {faqs.map((faq, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg">
-                      <button
-                        onClick={() => setActiveFAQ(activeFAQ === index ? null : index)}
-                        className="w-full px-4 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors"
-                      >
-                        <span className="font-medium text-gray-900">{faq.question}</span>
-                        <svg
-                          className={`w-5 h-5 text-gray-500 transition-transform ${
-                            activeFAQ === index ? 'rotate-180' : ''
-                          }`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <Header photo={undefined} />
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+                {getHelpText('title')}
+              </h1>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                {getHelpText('subtitle')}
+              </p>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* FAQ Section */}
+              <div>
+                <AnimatedCard className="p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                    {getHelpText('faq')}
+                  </h2>
+                  <div className="space-y-4">
+                    {faqs.map((faq, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg">
+                        <button
+                          onClick={() => setActiveFAQ(activeFAQ === index ? null : index)}
+                          className="w-full px-4 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors"
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                      {activeFAQ === index && (
-                        <div className="px-4 pb-4">
-                          <p className="text-gray-600">{faq.answer}</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </AnimatedCard>
-            </div>
+                          <span className="font-medium text-gray-900">{faq.question}</span>
+                          <svg
+                            className={`w-5 h-5 text-gray-500 transition-transform ${
+                              activeFAQ === index ? 'rotate-180' : ''
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        {activeFAQ === index && (
+                          <div className="px-4 pb-4">
+                            <p className="text-gray-600">{faq.answer}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </AnimatedCard>
+              </div>
 
-            {/* Contact Section */}
-            <div>
-              <AnimatedCard className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">
-                  {getHelpText('contact')}
-                </h2>
-                <div className="space-y-6">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                      <h3 className="font-medium text-blue-900">{getHelpText('email')}</h3>
+              {/* Contact Section */}
+              <div>
+                <AnimatedCard className="p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">
+                    {getHelpText('contact')}
+                  </h2>
+                  <div className="space-y-6">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <h3 className="font-medium text-blue-900">{getHelpText('email')}</h3>
+                      </div>
+                      <p className="text-blue-700 mb-2">support@oldpho.com</p>
+                      <p className="text-sm text-blue-600">{getHelpText('responseTime')}</p>
                     </div>
-                    <p className="text-blue-700 mb-2">support@oldpho.com</p>
-                    <p className="text-sm text-blue-600">{getHelpText('responseTime')}</p>
-                  </div>
-                  
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <h3 className="font-medium text-green-900">
-                        {currentLanguage === 'zh-TW' ? '在线文档' : currentLanguage === 'ja' ? 'オンラインドキュメント' : 'Documentation'}
-                      </h3>
+                    
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 className="font-medium text-green-900">
+                          {currentLanguage === 'zh-TW' ? '在线文档' : currentLanguage === 'ja' ? 'オンラインドキュメント' : 'Documentation'}
+                        </h3>
+                      </div>
+                      <p className="text-green-700">
+                        {currentLanguage === 'zh-TW' 
+                          ? '查看详细的使用指南和教程' 
+                          : currentLanguage === 'ja' 
+                          ? '詳細な使用ガイドとチュートリアルを確認'
+                          : 'View detailed guides and tutorials'
+                        }
+                      </p>
                     </div>
-                    <p className="text-green-700">
-                      {currentLanguage === 'zh-TW' 
-                        ? '查看详细的使用指南和教程' 
-                        : currentLanguage === 'ja' 
-                        ? '詳細な使用ガイドとチュートリアルを確認'
-                        : 'View detailed guides and tutorials'
-                      }
-                    </p>
                   </div>
-                </div>
-              </AnimatedCard>
+                </AnimatedCard>
+              </div>
             </div>
           </div>
-        </div>
-      </main>
-      
-      <Footer />
-    </div>
+        </main>
+        <Footer />
+      </div>
+    </>
   );
 };
 

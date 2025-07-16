@@ -6,16 +6,17 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import SubscriptionPlans from '../components/SubscriptionPlans';
 import Toast from '../components/Toast';
-import { Language } from '../types/language';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Subscription: NextPage = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
+  const { currentLanguage } = useLanguage();
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const handleLanguageChange = (language: Language) => {
-    setCurrentLanguage(language);
+  const handleLanguageChange = (language: string) => {
+    // Language change is now handled by the global context
+    console.log('Language changed to:', language);
   };
 
   const handleSubscribe = async (planId: string) => {

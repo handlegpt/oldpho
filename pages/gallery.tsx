@@ -5,10 +5,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { Language, translations } from '../utils/translations';
-import { getStoredLanguage, setStoredLanguage } from '../utils/languageStorage';
+import { translations } from '../utils/translations';
+import { useLanguage } from '../contexts/LanguageContext';
 import AnimatedCard from '../components/AnimatedCard';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { Language } from '../types/language';
 import Image from 'next/image';
 
 interface GalleryItem {
@@ -24,18 +25,13 @@ interface GalleryItem {
 const Gallery: NextPage = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
+  const { currentLanguage } = useLanguage();
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const t = translations[currentLanguage];
-
-  useEffect(() => {
-    const storedLanguage = getStoredLanguage();
-    setCurrentLanguage(storedLanguage);
-  }, []);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -80,8 +76,8 @@ const Gallery: NextPage = () => {
   }, []);
 
   const handleLanguageChange = (language: Language) => {
-    setCurrentLanguage(language);
-    setStoredLanguage(language);
+    // Language change is now handled by the global context
+    console.log('Language changed to:', language);
   };
 
   const handleSelectItem = (itemId: string) => {

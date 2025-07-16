@@ -5,10 +5,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { Language, translations } from '../utils/translations';
-import { getStoredLanguage, setStoredLanguage } from '../utils/languageStorage';
+import { translations } from '../utils/translations';
+import { useLanguage } from '../contexts/LanguageContext';
 import AnimatedCard from '../components/AnimatedCard';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { Language } from '../types/language';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -24,17 +25,12 @@ interface HistoryItem {
 const History: NextPage = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
+  const { currentLanguage } = useLanguage();
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'completed' | 'processing' | 'failed'>('all');
 
   const t = translations[currentLanguage];
-
-  useEffect(() => {
-    const storedLanguage = getStoredLanguage();
-    setCurrentLanguage(storedLanguage);
-  }, []);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -77,8 +73,8 @@ const History: NextPage = () => {
   }, []);
 
   const handleLanguageChange = (language: Language) => {
-    setCurrentLanguage(language);
-    setStoredLanguage(language);
+    // Language change is now handled by the global context
+    console.log('Language changed to:', language);
   };
 
   const filteredItems = historyItems.filter(item => {

@@ -3,21 +3,21 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { Language } from '../utils/translations';
-import { getStoredLanguage, setStoredLanguage } from '../utils/languageStorage';
+import { useLanguage } from '../contexts/LanguageContext';
+import { Language } from '../types/language';
 import { useState, useEffect } from 'react';
 
 const Privacy: NextPage = () => {
-  const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
+  const { currentLanguage } = useLanguage();
 
   useEffect(() => {
-    const storedLanguage = getStoredLanguage();
-    setCurrentLanguage(storedLanguage);
-  }, []);
+    // Language change is now handled by the global context
+    console.log('Language changed to:', currentLanguage);
+  }, [currentLanguage]);
 
   const handleLanguageChange = (language: Language) => {
-    setCurrentLanguage(language);
-    setStoredLanguage(language);
+    // Language change is now handled by the global context
+    console.log('Language changed to:', language);
   };
 
   const privacyContent = {

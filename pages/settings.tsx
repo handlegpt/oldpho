@@ -5,8 +5,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { Language, translations } from '../utils/translations';
-import { getStoredLanguage, setStoredLanguage } from '../utils/languageStorage';
+import { translations } from '../utils/translations';
+import { useLanguage } from '../contexts/LanguageContext';
 import AnimatedCard from '../components/AnimatedCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import AdvancedSettings from '../components/AdvancedSettings';
@@ -17,7 +17,7 @@ import Image from 'next/image';
 const Settings: NextPage = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [currentLanguage, setCurrentLanguage] = useState<Language>('en');
+  const { currentLanguage, setLanguage } = useLanguage();
   const [activeTab, setActiveTab] = useState<'general' | 'advanced' | 'roles' | 'analytics'>('general');
   const [settings, setSettings] = useState({
     emailNotifications: true,
@@ -29,19 +29,13 @@ const Settings: NextPage = () => {
   const t = translations[currentLanguage];
 
   useEffect(() => {
-    const storedLanguage = getStoredLanguage();
-    setCurrentLanguage(storedLanguage);
-  }, []);
-
-  useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/restore');
     }
   }, [status, router]);
 
-  const handleLanguageChange = (language: Language) => {
-    setCurrentLanguage(language);
-    setStoredLanguage(language);
+  const handleLanguageChange = (language: string) => {
+    setLanguage(language as any);
   };
 
   const handleSettingChange = (key: string, value: boolean) => {
@@ -53,12 +47,12 @@ const Settings: NextPage = () => {
 
   const handleAdvancedSettingsChange = (newSettings: any) => {
     console.log('Advanced settings changed:', newSettings);
-    // Here you would typically save to database or API
+    // Save to database or API here
   };
 
   const handleRoleChange = (role: string) => {
     console.log('User role changed:', role);
-    // Here you would typically update user role in database
+    // Update user role in database here
   };
 
   if (status === 'loading') {
@@ -108,11 +102,7 @@ const Settings: NextPage = () => {
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <Header 
-          photo={undefined} 
-          currentLanguage={currentLanguage} 
-          onLanguageChange={handleLanguageChange} 
-        />
+        <Header photo={undefined} />
 
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-6xl mx-auto">
@@ -131,178 +121,49 @@ const Settings: NextPage = () => {
               </p>
             </div>
 
-            {/* User Info Card */}
-            <AnimatedCard className="bg-white p-6 mb-8 shadow-lg">
-              <div className="flex items-center space-x-4">
-                <Image
-                  src={session.user?.image || '/default-avatar.png'}
-                  alt="Profile"
-                  width={64}
-                  height={64}
-                  className="rounded-full"
-                />
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {session.user?.name || session.user?.email}
-                  </h2>
-                  <p className="text-gray-600">{session.user?.email}</p>
-                  <p className="text-sm text-blue-600">
-                    {currentLanguage === 'zh-TW' ? '已登录' : currentLanguage === 'ja' ? 'ログイン中' : 'Signed in'}
-                  </p>
-                </div>
-              </div>
-            </AnimatedCard>
-
-            {/* Tab Navigation */}
-            <div className="mb-8">
-              <div className="flex flex-wrap gap-2 justify-center">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                      activeTab === tab.id
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
-                    }`}
-                  >
-                    <span className="mr-2">{tab.icon}</span>
-                    {tab.name}
-                  </button>
-                ))}
-              </div>
+            {/* Tabs */}
+            <div className="flex justify-center mb-8 space-x-4">
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  className={`px-6 py-3 rounded-lg font-semibold text-lg transition-colors ${activeTab === tab.id ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'}`}
+                  onClick={() => setActiveTab(tab.id as any)}
+                >
+                  <span className="mr-2">{tab.icon}</span>
+                  {tab.name}
+                </button>
+              ))}
             </div>
 
             {/* Tab Content */}
-            <div className="space-y-8">
+            <div className="bg-white rounded-lg shadow-md p-8">
               {activeTab === 'general' && (
-                <AnimatedCard className="bg-white p-6 shadow-lg">
-                  <h3 className="text-lg font-semibold mb-6">
-                    {currentLanguage === 'zh-TW' ? '基本设置' : currentLanguage === 'ja' ? '基本設定' : 'General Settings'}
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-gray-900">
-                          {currentLanguage === 'zh-TW' ? '邮件通知' : currentLanguage === 'ja' ? 'メール通知' : 'Email Notifications'}
-                        </h4>
-                        <p className="text-sm text-gray-600">
-                          {currentLanguage === 'zh-TW' 
-                            ? '接收处理完成和重要更新的邮件通知' 
-                            : currentLanguage === 'ja' 
-                            ? '処理完了と重要な更新のメール通知を受信'
-                            : 'Receive email notifications for completed processing and important updates'
-                          }
-                        </p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={settings.emailNotifications}
-                          onChange={(e) => handleSettingChange('emailNotifications', e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-gray-900">
-                          {currentLanguage === 'zh-TW' ? '处理进度通知' : currentLanguage === 'ja' ? '処理進捗通知' : 'Processing Notifications'}
-                        </h4>
-                        <p className="text-sm text-gray-600">
-                          {currentLanguage === 'zh-TW' 
-                            ? '在浏览器中显示处理进度通知' 
-                            : currentLanguage === 'ja' 
-                            ? 'ブラウザで処理進捗通知を表示'
-                            : 'Show processing progress notifications in browser'
-                          }
-                        </p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={settings.processingNotifications}
-                          onChange={(e) => handleSettingChange('processingNotifications', e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-gray-900">
-                          {currentLanguage === 'zh-TW' ? '自动保存' : currentLanguage === 'ja' ? '自動保存' : 'Auto Save'}
-                        </h4>
-                        <p className="text-sm text-gray-600">
-                          {currentLanguage === 'zh-TW' 
-                            ? '自动保存处理中的图片' 
-                            : currentLanguage === 'ja' 
-                            ? '処理中の画像を自動保存'
-                            : 'Automatically save images during processing'
-                          }
-                        </p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={settings.autoSave}
-                          onChange={(e) => handleSettingChange('autoSave', e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-gray-900">
-                          {currentLanguage === 'zh-TW' ? '高质量模式' : currentLanguage === 'ja' ? '高品質モード' : 'High Quality Mode'}
-                        </h4>
-                        <p className="text-sm text-gray-600">
-                          {currentLanguage === 'zh-TW' 
-                            ? '使用更高质量的处理选项（可能消耗更多配额）' 
-                            : currentLanguage === 'ja' 
-                            ? 'より高品質の処理オプションを使用（より多くのクォータを消費する可能性があります）'
-                            : 'Use higher quality processing options (may consume more quota)'
-                          }
-                        </p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={settings.highQualityMode}
-                          onChange={(e) => handleSettingChange('highQualityMode', e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
-                    </div>
+                <div>
+                  <h2 className="text-2xl font-bold mb-4">{currentLanguage === 'zh-TW' ? '基本设置' : currentLanguage === 'ja' ? '基本設定' : 'General Settings'}</h2>
+                  {/* General settings content */}
+                  <div className="mb-6">
+                    <label className="block mb-2 font-medium">{currentLanguage === 'zh-TW' ? '语言' : currentLanguage === 'ja' ? '言語' : 'Language'}</label>
+                    <select
+                      value={currentLanguage}
+                      onChange={e => handleLanguageChange(e.target.value)}
+                      className="border border-gray-300 rounded-lg px-4 py-2"
+                    >
+                      <option value="en">English</option>
+                      <option value="zh-TW">繁體中文</option>
+                      <option value="ja">日本語</option>
+                    </select>
                   </div>
-                </AnimatedCard>
+                  {/* Other general settings... */}
+                </div>
               )}
-
               {activeTab === 'advanced' && (
-                <AdvancedSettings 
-                  currentLanguage={currentLanguage}
-                  onSettingsChange={handleAdvancedSettingsChange}
-                />
+                <AdvancedSettings currentLanguage={currentLanguage} onSettingsChange={handleAdvancedSettingsChange} />
               )}
-
               {activeTab === 'roles' && (
-                <UserRoleManager 
-                  currentLanguage={currentLanguage}
-                  onRoleChange={handleRoleChange}
-                />
+                <UserRoleManager currentLanguage={currentLanguage} onRoleChange={handleRoleChange} />
               )}
-
               {activeTab === 'analytics' && (
-                <AnalyticsDashboard 
-                  currentLanguage={currentLanguage}
-                />
+                <AnalyticsDashboard currentLanguage={currentLanguage} />
               )}
             </div>
           </div>
