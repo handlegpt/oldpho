@@ -22,10 +22,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Image URL is required' });
     }
 
+    // Handle relative URLs by constructing full path
+    let fullImageUrl = imageUrl;
+    if (imageUrl.startsWith('/')) {
+      // For relative URLs, construct the full path
+      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3001';
+      fullImageUrl = `${baseUrl}${imageUrl}`;
+    }
+
     // Download the image
-    const imageResponse = await fetch(imageUrl);
+    const imageResponse = await fetch(fullImageUrl);
     if (!imageResponse.ok) {
-      throw new Error('Failed to download image');
+      throw new Error(`Failed to download image: ${imageResponse.statusText}`);
     }
 
     const imageBuffer = await imageResponse.arrayBuffer();

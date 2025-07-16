@@ -22,10 +22,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // For now, return a mock image URL since we don't have formidable
+    // For now, return a mock processed image URL since we don't have formidable
     // In production, you would implement proper file upload handling
     const timestamp = Date.now();
-    const imageUrl = `/sample-image-${timestamp}.jpg`;
+    const originalImageUrl = `/sample-image-${timestamp}.jpg`;
+    const processedImageUrl = `/enhanced-image-${timestamp}.jpg`;
 
     // Ensure uploads directory exists
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
@@ -33,13 +34,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
 
-    // Create a dummy file for demo purposes
-    const dummyPath = path.join(uploadsDir, `sample-image-${timestamp}.jpg`);
-    fs.writeFileSync(dummyPath, 'dummy image content');
+    // Create dummy files for demo purposes
+    const originalPath = path.join(uploadsDir, `sample-image-${timestamp}.jpg`);
+    const processedPath = path.join(uploadsDir, `enhanced-image-${timestamp}.jpg`);
+    
+    fs.writeFileSync(originalPath, 'dummy original image content');
+    fs.writeFileSync(processedPath, 'dummy processed image content');
 
     return res.status(200).json({
       success: true,
-      imageUrl,
+      imageUrl: originalImageUrl,
+      processedImageUrl: processedImageUrl,
       filename: `sample-image-${timestamp}.jpg`,
     });
 

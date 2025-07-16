@@ -146,7 +146,7 @@ const Restore: NextPage = () => {
       const formData = new FormData();
       formData.append('file', blob, 'image.jpg');
 
-      // Upload image first
+      // Upload and process image in one step
       const uploadResponse = await fetch('/api/upload', {
         method: 'POST',
         body: formData
@@ -154,70 +154,33 @@ const Restore: NextPage = () => {
 
       if (!uploadResponse.ok) {
         const errorData = await uploadResponse.json();
-        throw new Error(errorData.error || 'Failed to upload image');
+        throw new Error(errorData.error || 'Failed to upload and process image');
       }
 
-      const { imageUrl } = await uploadResponse.json();
+      const { processedImageUrl } = await uploadResponse.json();
 
-      // Update progress to 20%
-      setProgress(20);
-
-      // Add job to queue for AI processing
-      const queueResponse = await fetch('/api/queue/add-job', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageUrl,
-          originalImageUrl: imageUrl,
-          priority: 'normal'
-        }),
-      });
-
-      if (!queueResponse.ok) {
-        const errorData = await queueResponse.json();
-        throw new Error(errorData.error || 'Failed to add job to queue');
-      }
-
-      const { jobId } = await queueResponse.json();
-
-      // Update progress to 40%
-      setProgress(40);
-
-      // Poll for job completion
-      let attempts = 0;
-      const maxAttempts = 60; // 5 minutes with 5-second intervals
-      
-      while (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
-        setProgress(Math.min(90, 40 + (attempts / maxAttempts) * 50)); // Update progress from 40% to 90%
-
-        const jobResponse = await fetch(`/api/queue/get-job?jobId=${jobId}`);
-        
-        if (jobResponse.ok) {
-          const jobData = await jobResponse.json();
-          
-          if (jobData.job.status === 'completed') {
-            setProgress(100);
-            setResult(jobData.job.restoredImageUrl);
-            setSuccess(getSuccessMessage());
-            return;
-          } else if (jobData.job.status === 'failed') {
-            throw new Error(jobData.job.error || 'Job processing failed');
-          }
-        } else {
-          console.warn('Failed to get job status, retrying...');
-        }
-        
-        attempts++;
-      }
-
-      throw new Error('Job processing timeout');
+      // Update progress to 100%
+      setProgress(100);
+      setResult(processedImageUrl);
+      setSuccess(getSuccessMessage());
 
     } catch (err) {
       console.error('Restore error:', err);
-      setError(err instanceof Error ? err.message : 'Restore failed. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Restore failed. Please try again.';
+      
+      // 根据错误类型提供更友好的错误信息
+      let userFriendlyError = errorMessage;
+      if (errorMessage.includes('Failed to upload')) {
+        userFriendlyError = currentLanguage === 'zh-TW' ? '图片上传失败，请重试' : 
+                           currentLanguage === 'ja' ? '画像のアップロードに失敗しました。もう一度お試しください' :
+                           'Image upload failed, please try again';
+      } else if (errorMessage.includes('Internal server error')) {
+        userFriendlyError = currentLanguage === 'zh-TW' ? '服务器内部错误，请稍后重试' : 
+                           currentLanguage === 'ja' ? 'サーバー内部エラーです。後でもう一度お試しください' :
+                           'Internal server error, please try again later';
+      }
+      
+      setError(userFriendlyError);
     } finally {
       setIsProcessing(false);
     }
