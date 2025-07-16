@@ -19,6 +19,65 @@ const memoryAdapter = {
   useVerificationToken: async (params: any) => null,
 };
 
+// 获取邮件语言内容
+const getEmailContent = (email: string, url: string) => {
+  // 根据邮箱域名判断语言偏好
+  const domain = email.split('@')[1]?.toLowerCase();
+  
+  // 中文邮箱域名
+  const chineseDomains = ['qq.com', '163.com', '126.com', 'sina.com', 'sohu.com', 'yeah.net', 'gmail.com'];
+  // 日文邮箱域名
+  const japaneseDomains = ['yahoo.co.jp', 'docomo.ne.jp', 'ezweb.ne.jp', 'softbank.ne.jp'];
+  
+  if (chineseDomains.includes(domain)) {
+    return {
+      subject: 'OldPho - 登录验证',
+      text: `请点击以下链接登录 OldPho：\n\n${url}\n\n如果您没有请求此邮件，请忽略。`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">OldPho 登录验证</h2>
+          <p>请点击下面的按钮登录您的账户：</p>
+          <a href="${url}" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">登录 OldPho</a>
+          <p>或者复制以下链接到浏览器：</p>
+          <p style="word-break: break-all; color: #666;">${url}</p>
+          <p style="color: #999; font-size: 12px;">如果您没有请求此邮件，请忽略。</p>
+        </div>
+      `
+    };
+  } else if (japaneseDomains.includes(domain)) {
+    return {
+      subject: 'OldPho - ログイン認証',
+      text: `OldPhoにログインするには、以下のリンクをクリックしてください：\n\n${url}\n\nこのメールをリクエストしていない場合は、無視してください。`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">OldPho ログイン認証</h2>
+          <p>下のボタンをクリックしてアカウントにログインしてください：</p>
+          <a href="${url}" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">OldPhoにログイン</a>
+          <p>または、以下のリンクをブラウザにコピーしてください：</p>
+          <p style="word-break: break-all; color: #666;">${url}</p>
+          <p style="color: #999; font-size: 12px;">このメールをリクエストしていない場合は、無視してください。</p>
+        </div>
+      `
+    };
+  } else {
+    // 默认英文
+    return {
+      subject: 'OldPho - Login Verification',
+      text: `Click the following link to sign in to OldPho:\n\n${url}\n\nIf you didn't request this email, please ignore it.`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">OldPho Login Verification</h2>
+          <p>Click the button below to sign in to your account:</p>
+          <a href="${url}" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">Sign in to OldPho</a>
+          <p>Or copy the following link to your browser:</p>
+          <p style="word-break: break-all; color: #666;">${url}</p>
+          <p style="color: #999; font-size: 12px;">If you didn't request this email, please ignore it.</p>
+        </div>
+      `
+    };
+  }
+};
+
 // 验证邮箱配置
 const validateEmailConfig = () => {
   const required = ['EMAIL_SERVER_HOST', 'EMAIL_SERVER_USER', 'EMAIL_SERVER_PASS'];
@@ -78,21 +137,15 @@ export default NextAuth({
           await transport.verify();
           console.log('Transporter verified successfully');
           
+          // 根据邮箱获取多语言内容
+          const emailContent = getEmailContent(identifier, url);
+          
           const result = await transport.sendMail({
             to: identifier,
             from,
-            subject: 'OldPho - 登录验证',
-            text: `请点击以下链接登录 OldPho：\n\n${url}\n\n如果您没有请求此邮件，请忽略。`,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #333;">OldPho 登录验证</h2>
-                <p>请点击下面的按钮登录您的账户：</p>
-                <a href="${url}" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">登录 OldPho</a>
-                <p>或者复制以下链接到浏览器：</p>
-                <p style="word-break: break-all; color: #666;">${url}</p>
-                <p style="color: #999; font-size: 12px;">如果您没有请求此邮件，请忽略。</p>
-              </div>
-            `
+            subject: emailContent.subject,
+            text: emailContent.text,
+            html: emailContent.html
           });
           
           console.log('Email sent successfully:', result.messageId);
