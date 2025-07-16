@@ -1,6 +1,6 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Header from '../components/Header';
@@ -18,7 +18,7 @@ import downloadPhoto from '../utils/downloadPhoto';
 const Restore: NextPage = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { currentLanguage } = useLanguage();
+  const { currentLanguage, setLanguage } = useLanguage();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -26,6 +26,10 @@ const Restore: NextPage = () => {
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [email, setEmail] = useState<string>('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [isEmailSent, setIsEmailSent] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const t = translations[currentLanguage];
@@ -161,7 +165,7 @@ const Restore: NextPage = () => {
   };
 
   const handleLanguageChange = (language: Language) => {
-    setCurrentLanguage(language);
+    setLanguage(language);
   };
 
   const handleShare = () => {
