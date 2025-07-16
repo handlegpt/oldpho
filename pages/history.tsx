@@ -194,10 +194,7 @@ const History: NextPage = () => {
         <meta name="description" content="Your photo restoration history" />
       </Head>
       
-      <Header 
-        currentLanguage={currentLanguage}
-        onLanguageChange={handleLanguageChange}
-      />
+      <Header />
       
       <main className="pt-20 pb-16 px-4">
         <div className="max-w-6xl mx-auto">

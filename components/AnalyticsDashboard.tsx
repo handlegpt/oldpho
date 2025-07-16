@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Language } from '../types/language';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface AnalyticsData {
   totalRestorations: number;
@@ -22,11 +22,11 @@ interface AnalyticsData {
 }
 
 interface AnalyticsDashboardProps {
-  currentLanguage: Language;
 }
 
-const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ currentLanguage }) => {
+const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = () => {
   const { data: session } = useSession();
+  const { currentLanguage } = useLanguage();
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
     totalRestorations: 0,
     successfulRestorations: 0,

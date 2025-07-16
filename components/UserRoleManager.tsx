@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Language } from '../types/language';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface UserRole {
   id: string;
@@ -11,15 +11,14 @@ interface UserRole {
 }
 
 interface UserRoleManagerProps {
-  currentLanguage: Language;
   onRoleChange?: (role: string) => void;
 }
 
 const UserRoleManager: React.FC<UserRoleManagerProps> = ({ 
-  currentLanguage, 
   onRoleChange 
 }) => {
   const { data: session } = useSession();
+  const { currentLanguage } = useLanguage();
   const [userRole, setUserRole] = useState<string>('free');
   const [availableRoles, setAvailableRoles] = useState<UserRole[]>([]);
 

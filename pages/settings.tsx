@@ -157,13 +157,13 @@ const Settings: NextPage = () => {
                 </div>
               )}
               {activeTab === 'advanced' && (
-                <AdvancedSettings currentLanguage={currentLanguage} onSettingsChange={handleAdvancedSettingsChange} />
+                <AdvancedSettings onSettingsChange={handleAdvancedSettingsChange} />
               )}
               {activeTab === 'roles' && (
-                <UserRoleManager currentLanguage={currentLanguage} onRoleChange={handleRoleChange} />
+                <UserRoleManager onRoleChange={handleRoleChange} />
               )}
               {activeTab === 'analytics' && (
-                <AnalyticsDashboard currentLanguage={currentLanguage} />
+                <AnalyticsDashboard />
               )}
             </div>
           </div>

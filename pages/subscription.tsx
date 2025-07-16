@@ -77,10 +77,7 @@ const Subscription: NextPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header 
-        currentLanguage={currentLanguage}
-        onLanguageChange={handleLanguageChange}
-      />
+      <Header />
       
       <main className="pt-20 pb-16">
         <SubscriptionPlans 

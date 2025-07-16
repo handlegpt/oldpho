@@ -198,10 +198,7 @@ const Privacy: NextPage = () => {
         <link rel='icon' href='/favicon.ico' />
       </Head>
 
-      <Header 
-        currentLanguage={currentLanguage}
-        onLanguageChange={handleLanguageChange}
-      />
+      <Header />
 
       <main className='flex flex-1 w-full flex-col items-center justify-center text-center px-4 mt-4 sm:mb-0 mb-8'>
         <div className="max-w-4xl mx-auto">

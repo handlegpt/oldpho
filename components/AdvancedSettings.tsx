@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Language } from '../types/language';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface AdvancedSettingsProps {
-  currentLanguage: Language;
   onSettingsChange?: (settings: any) => void;
 }
 
@@ -20,10 +19,10 @@ interface Settings {
 }
 
 const AdvancedSettings: React.FC<AdvancedSettingsProps> = ({ 
-  currentLanguage, 
   onSettingsChange 
 }) => {
   const { data: session } = useSession();
+  const { currentLanguage } = useLanguage();
   const [settings, setSettings] = useState<Settings>({
     processingQuality: 'standard',
     autoSave: true,
