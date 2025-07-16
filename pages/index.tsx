@@ -1,5 +1,6 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
+import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Header from '../components/Header';
@@ -8,7 +9,7 @@ import { translations } from '../utils/translations';
 import { useLanguage } from '../contexts/LanguageContext';
 import AnimatedCard from '../components/AnimatedCard';
 import ShareModal from '../components/ShareModal';
-import SEO from '../components/SEO';
+import { SEO } from '../components/SEO';
 
 const Home: NextPage = () => {
   const { currentLanguage } = useLanguage();
