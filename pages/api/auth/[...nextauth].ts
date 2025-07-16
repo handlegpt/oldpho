@@ -11,7 +11,7 @@ const getNextAuthUrl = () => {
   
   // 否则根据环境推断
   if (process.env.NODE_ENV === 'production') {
-    return 'https://oldpho.com';
+    return 'http://oldpho.com'; // 改为HTTP协议
   }
   
   return 'http://localhost:3001';
