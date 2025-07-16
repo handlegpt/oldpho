@@ -31,9 +31,19 @@ const Pricing: NextPage = () => {
     <>
       <Header photo={undefined} />
       <main className="container mx-auto px-4 py-8">
-        {/* Pricing content... */}
+        <SubscriptionPlans 
+          currentLanguage={currentLanguage}
+          onSubscribe={handleSubscribe}
+        />
       </main>
       <Footer />
+      {toast && (
+        <Toast
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
+      )}
     </>
   );
 };
