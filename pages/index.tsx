@@ -231,10 +231,14 @@ const Home: NextPage = () => {
 
         {showShareModal && (
           <ShareModal
+            isOpen={showShareModal}
             onClose={() => setShowShareModal(false)}
-            title={t.share.title}
-            description={t.share.description}
-            url={typeof window !== 'undefined' ? window.location.href : ''}
+            shareData={{
+              title: t.share.title,
+              description: t.share.description,
+              url: typeof window !== 'undefined' ? window.location.href : ''
+            }}
+            currentLanguage={currentLanguage}
           />
         )}
       </div>
