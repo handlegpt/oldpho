@@ -66,12 +66,30 @@ export default NextAuth({
       sendVerificationRequest: async ({ identifier, url, provider }) => {
         console.log('Sending verification email to:', identifier);
         console.log('Email URL:', url);
+        console.log('Provider config:', {
+          host: provider.server.host,
+          port: provider.server.port,
+          user: provider.server.auth.user,
+          secure: provider.server.secure
+        });
         
         try {
           const { server, from } = provider;
           const nodemailer = require('nodemailer');
           
+          console.log('Creating transporter with config:', {
+            host: server.host,
+            port: server.port,
+            secure: server.secure,
+            auth: { user: server.auth.user, pass: '***' }
+          });
+          
           const transport = nodemailer.createTransport(server);
+          
+          // 验证连接
+          console.log('Verifying transporter connection...');
+          await transport.verify();
+          console.log('Transporter verified successfully');
           
           const result = await transport.sendMail({
             to: identifier,
@@ -94,6 +112,11 @@ export default NextAuth({
           return result;
         } catch (error) {
           console.error('Email sending failed:', error);
+          console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            command: error.command
+          });
           throw error;
         }
       }
