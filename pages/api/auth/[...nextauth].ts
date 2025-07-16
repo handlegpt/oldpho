@@ -195,7 +195,7 @@ if (validateGoogleConfig()) {
   );
 }
 
-export default NextAuth({
+export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   adapter: memoryAdapter,
   providers,
@@ -253,7 +253,9 @@ export default NextAuth({
     signIn: '/auth/signin',
     error: '/auth/error',
   }
-});
+};
+
+export default NextAuth(authOptions);
 
 // Validate configuration on startup
 validateEmailConfig();

@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth';
+import { authOptions } from './auth/[...nextauth]';
 import { errorMessages, getErrorDetails } from '../../utils/errorHandling';
 
 export default async function handler(
@@ -11,12 +12,10 @@ export default async function handler(
   }
 
   try {
-    // Get user session
-    const session = await getServerSession(req, res, {});
-    
-    if (!session || !session.user) {
-      const errorDetails = getErrorDetails({ message: 'Authentication required' });
-      return res.status(401).json(errorDetails);
+    // Check authentication
+    const session = await getServerSession(req, res, authOptions);
+    if (!session?.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     // 这里添加照片修复逻辑
