@@ -63,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         console.warn('REPLICATE_API_TOKEN not configured, using fallback');
         // Fallback: create a copy as "processed" image
         fs.copyFileSync(originalPath, processedPath);
-        processedImageUrl = `/uploads/${processedFilename}`;
+        processedImageUrl = `/api/uploads/${processedFilename}`;
       } else {
         // Convert image to base64 for Replicate API
         const imageBuffer = fs.readFileSync(originalPath);
@@ -121,7 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             
             const processedImageBuffer = await processedImageResponse.arrayBuffer();
             fs.writeFileSync(processedPath, Buffer.from(processedImageBuffer));
-            processedImageUrl = `/uploads/${processedFilename}`;
+            processedImageUrl = `/api/uploads/${processedFilename}`;
             break;
           } else if (status.status === 'failed') {
             throw new Error(status.error || 'Prediction failed');
@@ -138,10 +138,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.error('Image processing error:', error);
       // Fallback: create a copy as "processed" image
       fs.copyFileSync(originalPath, processedPath);
-      processedImageUrl = `/uploads/${processedFilename}`;
+      processedImageUrl = `/api/uploads/${processedFilename}`;
     }
 
-    const originalImageUrl = `/uploads/${originalFilename}`;
+    const originalImageUrl = `/api/uploads/${originalFilename}`;
 
     console.log('File uploaded and processed successfully:', {
       original: originalImageUrl,
