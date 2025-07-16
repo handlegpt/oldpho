@@ -10,7 +10,7 @@ export const getStoredLanguage = (): Language => {
     return stored as Language;
   }
   
-  // 根据浏览器语言自动选择
+  // Auto-select based on browser language
   const browserLang = navigator.language;
   if (browserLang.startsWith('zh')) return 'zh-TW';
   if (browserLang.startsWith('ja')) return 'ja';

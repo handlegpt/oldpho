@@ -3,6 +3,7 @@ import { SessionProvider } from 'next-auth/react';
 import '../styles/globals.css';
 import PlausibleProvider from 'next-plausible';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { LanguageProvider } from '../contexts/LanguageContext';
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 
@@ -109,7 +110,9 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
       </Head>
       <SessionProvider session={session}>
         <PlausibleProvider domain='oldpho.com'>
-          <Component {...pageProps} />
+          <LanguageProvider>
+            <Component {...pageProps} />
+          </LanguageProvider>
         </PlausibleProvider>
       </SessionProvider>
     </ErrorBoundary>

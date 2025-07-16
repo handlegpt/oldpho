@@ -1,4 +1,4 @@
-// 缓存项接口
+// Cache item interface
 interface CacheItem<T> {
   data: T;
   timestamp: number;
@@ -8,7 +8,7 @@ interface CacheItem<T> {
   cost: number;
 }
 
-// 缓存统计接口
+// Cache statistics interface
 interface CacheStats {
   size: number;
   maxSize: number;
@@ -19,12 +19,12 @@ interface CacheStats {
   averageAccessTime: number;
 }
 
-// 缓存策略枚举
+// Cache strategy enum
 enum CacheStrategy {
-  LRU = 'lru',      // 最近最少使用
-  LFU = 'lfu',      // 最少使用频率
-  FIFO = 'fifo',    // 先进先出
-  COST = 'cost'     // 基于成本
+  LRU = 'lru',      // Least Recently Used
+  LFU = 'lfu',      // Least Frequently Used
+  FIFO = 'fifo',    // First In First Out
+  COST = 'cost'     // Cost-based
 }
 
 class SmartCacheManager {
@@ -41,12 +41,12 @@ class SmartCacheManager {
     this.strategy = strategy;
   }
 
-  // 设置缓存项
+  // Set cache item
   set<T>(key: string, data: T, ttl: number = 3600000, cost: number = 0): void {
-    // 清理过期项目
+    // Clean up expired items
     this.cleanup();
 
-    // 如果缓存已满，根据策略删除项目
+    // If cache is full, evict items based on strategy
     if (this.cache.size >= this.maxSize) {
       this.evictItem();
     }
@@ -61,7 +61,7 @@ class SmartCacheManager {
     });
   }
 
-  // 获取缓存项
+  // Get cache item
   get<T>(key: string): T | null {
     const item = this.cache.get(key);
     
@@ -70,20 +70,20 @@ class SmartCacheManager {
       return null;
     }
 
-    // 检查是否过期
+    // Check if expired
     if (Date.now() - item.timestamp > item.ttl) {
       this.cache.delete(key);
       this.totalMisses++;
       return null;
     }
 
-    // 更新访问统计
+    // Update access statistics
     item.accessCount++;
     item.lastAccessed = Date.now();
     this.totalHits++;
     this.accessTimes.push(Date.now());
 
-    // 保持访问时间数组在合理大小
+    // Keep access times array at reasonable size
     if (this.accessTimes.length > 1000) {
       this.accessTimes = this.accessTimes.slice(-500);
     }
@@ -91,7 +91,7 @@ class SmartCacheManager {
     return item.data as T;
   }
 
-  // 获取或处理（如果不存在）
+  // Get or process (if not exists)
   async getOrProcess<T>(
     key: string, 
     processor: () => Promise<T>, 
@@ -103,18 +103,18 @@ class SmartCacheManager {
       return cached;
     }
 
-    // 处理并缓存结果
+    // Process and cache result
     const result = await processor();
     this.set(key, result, ttl, cost);
     return result;
   }
 
-  // 检查是否存在
+  // Check if exists
   has(key: string): boolean {
     return this.get(key) !== null;
   }
 
-  // 删除缓存项
+  // Delete cache item
   delete(key: string): boolean {
     const item = this.cache.get(key);
     if (item) {
@@ -123,7 +123,7 @@ class SmartCacheManager {
     return this.cache.delete(key);
   }
 
-  // 清理过期项目
+  // Clean up expired items
   private cleanup(): void {
     const now = Date.now();
     const entries = Array.from(this.cache.entries());
@@ -136,7 +136,7 @@ class SmartCacheManager {
     }
   }
 
-  // 根据策略删除项目
+  // Evict item based on strategy
   private evictItem(): void {
     if (this.cache.size === 0) return;
 
@@ -145,7 +145,7 @@ class SmartCacheManager {
 
     switch (this.strategy) {
       case CacheStrategy.LRU:
-        // 最近最少使用
+        // Least Recently Used
         const lruEntries = Array.from(this.cache.entries());
         for (const [key, item] of lruEntries) {
           if (item.lastAccessed < minValue) {
@@ -156,7 +156,7 @@ class SmartCacheManager {
         break;
 
       case CacheStrategy.LFU:
-        // 最少使用频率
+        // Least Frequently Used
         const lfuEntries = Array.from(this.cache.entries());
         for (const [key, item] of lfuEntries) {
           if (item.accessCount < minValue) {
@@ -167,13 +167,13 @@ class SmartCacheManager {
         break;
 
       case CacheStrategy.FIFO:
-        // 先进先出
+        // First In First Out
         const keys = Array.from(this.cache.keys());
         keyToEvict = keys[0];
         break;
 
       case CacheStrategy.COST:
-        // 基于成本
+        // Cost-based
         const costEntries = Array.from(this.cache.entries());
         for (const [key, item] of costEntries) {
           if (item.cost > minValue) {
@@ -189,7 +189,7 @@ class SmartCacheManager {
     }
   }
 
-  // 清空缓存
+  // Clear cache
   clear(): void {
     this.cache.clear();
     this.totalHits = 0;
@@ -198,13 +198,13 @@ class SmartCacheManager {
     this.accessTimes = [];
   }
 
-  // 获取缓存大小
+  // Get cache size
   size(): number {
     this.cleanup();
     return this.cache.size;
   }
 
-  // 获取缓存统计
+  // Get cache statistics
   getStats(): CacheStats {
     this.cleanup();
     
@@ -226,27 +226,27 @@ class SmartCacheManager {
     };
   }
 
-  // 获取缓存键列表
+  // Get cache keys list
   keys(): string[] {
     return Array.from(this.cache.keys());
   }
 
-  // 设置最大大小
+  // Set max size
   setMaxSize(maxSize: number): void {
     this.maxSize = maxSize;
     
-    // 如果当前大小超过新的最大大小，删除多余的项目
+    // If current size exceeds new max size, delete excess items
     while (this.cache.size > this.maxSize) {
       this.evictItem();
     }
   }
 
-  // 设置缓存策略
+  // Set cache strategy
   setStrategy(strategy: CacheStrategy): void {
     this.strategy = strategy;
   }
 
-  // 预热缓存
+  // Warm up cache
   async warmup<T>(items: Array<{ key: string; processor: () => Promise<T>; ttl?: number; cost?: number }>): Promise<void> {
     const promises = items.map(item => 
       this.getOrProcess(
@@ -260,7 +260,7 @@ class SmartCacheManager {
     await Promise.all(promises);
   }
 
-  // 批量获取
+  // Batch get
   async getMultiple<T>(keys: string[]): Promise<Map<string, T | null>> {
     const results = new Map<string, T | null>();
     
@@ -271,14 +271,14 @@ class SmartCacheManager {
     return results;
   }
 
-  // 批量设置
+  // Batch set
   setMultiple<T>(items: Array<{ key: string; data: T; ttl?: number; cost?: number }>): void {
     for (const item of items) {
       this.set(item.key, item.data, item.ttl || 3600000, item.cost || 0);
     }
   }
 
-  // 获取缓存项详情
+  // Get cache item details
   getItemDetails(key: string): CacheItem<any> | null {
     const item = this.cache.get(key);
     if (!item) return null;
@@ -286,13 +286,13 @@ class SmartCacheManager {
     return item;
   }
 
-  // 导出缓存数据（用于持久化）
+  // Export cache data (for persistence)
   export(): Record<string, CacheItem<any>> {
     const data: Record<string, CacheItem<any>> = {};
     
     const entries = Array.from(this.cache.entries());
     for (const [key, item] of entries) {
-      // 只导出未过期的项目
+      // Only export non-expired items
       if (Date.now() - item.timestamp <= item.ttl) {
         data[key] = item;
       }
@@ -301,12 +301,12 @@ class SmartCacheManager {
     return data;
   }
 
-  // 导入缓存数据
+  // Import cache data
   import(data: Record<string, CacheItem<any>>): void {
     this.clear();
     
     for (const [key, item] of Object.entries(data)) {
-      // 只导入未过期的项目
+      // Only import non-expired items
       if (Date.now() - item.timestamp <= item.ttl) {
         this.cache.set(key, item);
       }
@@ -314,8 +314,8 @@ class SmartCacheManager {
   }
 }
 
-// 导出单例实例
+// Export singleton instance
 export default new SmartCacheManager();
 
-// 导出类型和枚举
+// Export types and enum
 export { CacheStrategy, type CacheItem, type CacheStats }; 
