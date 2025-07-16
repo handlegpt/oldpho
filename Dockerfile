@@ -30,6 +30,9 @@ COPY . .
 # 生成 Prisma 客户端
 RUN npx prisma generate
 
+# 创建uploads目录
+RUN mkdir -p public/uploads
+
 # 构建应用
 RUN npm run build
 
@@ -69,6 +72,9 @@ COPY --from=builder /app/public ./public
 # 复制 Prisma 相关文件
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# 创建uploads目录并设置权限
+RUN mkdir -p public/uploads && chown -R nextjs:nodejs public/uploads
 
 # 设置权限
 RUN chown -R nextjs:nodejs /app

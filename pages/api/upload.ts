@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Ensure uploads directory exists
+    // Ensure uploads directory exists in public folder
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
@@ -146,6 +146,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('File uploaded and processed successfully:', {
       original: originalImageUrl,
       processed: processedImageUrl,
+      originalPath,
+      processedPath,
       userId: session.user.email
     });
 
