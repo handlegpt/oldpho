@@ -63,20 +63,13 @@ export default NextAuth({
       },
       from: process.env.EMAIL_FROM || 'OldPho <hello@oldpho.com>',
       maxAge: 10 * 60, // 10分钟
-      sendVerificationRequest: async ({ identifier, url, provider }) => {
+      sendVerificationRequest: async ({ identifier, url, provider }: any) => {
         console.log('Sending verification email to:', identifier);
         console.log('Email URL:', url);
         
         try {
           const { server, from } = provider;
           const nodemailer = require('nodemailer');
-          
-          console.log('Creating transporter with config:', {
-            host: server.host,
-            port: server.port,
-            secure: server.secure,
-            auth: { user: server.auth.user, pass: '***' }
-          });
           
           const transport = nodemailer.createTransport(server);
           
