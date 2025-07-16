@@ -71,7 +71,7 @@ export class PhotoRestorationQueue {
     const queueName = job.priority === 'high' ? QUEUE_NAMES.HIGH_PRIORITY : QUEUE_NAMES.LOW_PRIORITY;
     
     await this.redis.lpush(queueName, JSON.stringify(fullJob));
-    await this.redis.hset(`job:${jobId}`, JSON.stringify(fullJob));
+    await this.redis.hset(`job:${jobId}`, { data: JSON.stringify(fullJob) });
     
     console.log(`Job ${jobId} added to queue with priority: ${job.priority}`);
     return jobId;
@@ -91,7 +91,7 @@ export class PhotoRestorationQueue {
       const job: QueueJob = JSON.parse(highPriorityJob);
       job.status = JOB_STATUS.PROCESSING;
       job.startedAt = Date.now();
-      await this.redis.hset(`job:${job.id}`, job);
+      await this.redis.hset(`job:${job.id}`, { data: JSON.stringify(job) });
       return job;
     }
 
@@ -100,7 +100,7 @@ export class PhotoRestorationQueue {
       const job: QueueJob = JSON.parse(lowPriorityJob);
       job.status = JOB_STATUS.PROCESSING;
       job.startedAt = Date.now();
-      await this.redis.hset(`job:${job.id}`, job);
+      await this.redis.hset(`job:${job.id}`, { data: JSON.stringify(job) });
       return job;
     }
 
@@ -114,7 +114,7 @@ export class PhotoRestorationQueue {
       throw new Error(`Job ${jobId} not found`);
     }
 
-    const jobString = Object.values(jobData)[0] as string;
+    const jobString = jobData.data as string;
     const job: QueueJob = JSON.parse(jobString);
     job.status = status;
     
@@ -142,7 +142,7 @@ export class PhotoRestorationQueue {
       }
     }
 
-    await this.redis.hset(`job:${jobId}`, JSON.stringify(job));
+    await this.redis.hset(`job:${jobId}`, { data: JSON.stringify(job) });
   }
 
   // Get job by ID
@@ -151,9 +151,8 @@ export class PhotoRestorationQueue {
     if (!jobData || Object.keys(jobData).length === 0) {
       return null;
     }
-    // Redis hgetall returns an object, but we stored it as JSON string
-    // So we need to get the actual job data from the object
-    const jobString = Object.values(jobData)[0] as string;
+    // Redis hgetall returns an object with our data field
+    const jobString = jobData.data as string;
     return jobString ? JSON.parse(jobString) : null;
   }
 
@@ -165,8 +164,8 @@ export class PhotoRestorationQueue {
 
     for (const key of keys) {
       const jobData = await this.redis.hgetall(key);
-      if (jobData && Object.keys(jobData).length > 0) {
-        const jobString = Object.values(jobData)[0] as string;
+      if (jobData && jobData.data) {
+        const jobString = jobData.data as string;
         if (jobString) {
           const job = JSON.parse(jobString);
           if (job.userId === userId) {
@@ -201,8 +200,8 @@ export class PhotoRestorationQueue {
 
     for (const key of keys) {
       const jobData = await this.redis.hgetall(key);
-      if (jobData && Object.keys(jobData).length > 0) {
-        const jobString = Object.values(jobData)[0] as string;
+      if (jobData && jobData.data) {
+        const jobString = jobData.data as string;
         if (jobString) {
           const job = JSON.parse(jobString);
           if (job.status === JOB_STATUS.PROCESSING) processing++;
@@ -230,8 +229,8 @@ export class PhotoRestorationQueue {
 
     for (const key of keys) {
       const jobData = await this.redis.hgetall(key);
-      if (jobData && Object.keys(jobData).length > 0) {
-        const jobString = Object.values(jobData)[0] as string;
+      if (jobData && jobData.data) {
+        const jobString = jobData.data as string;
         if (jobString) {
           const job = JSON.parse(jobString);
           if (job.status === JOB_STATUS.PROCESSING) {
@@ -268,8 +267,8 @@ export class PhotoRestorationQueue {
 
     for (const key of keys) {
       const jobData = await this.redis.hgetall(key);
-      if (jobData && Object.keys(jobData).length > 0) {
-        const jobString = Object.values(jobData)[0] as string;
+      if (jobData && jobData.data) {
+        const jobString = jobData.data as string;
         if (jobString) {
           const job = JSON.parse(jobString);
           if (job.status === JOB_STATUS.COMPLETED && job.completedAt < cutoffTime) {
