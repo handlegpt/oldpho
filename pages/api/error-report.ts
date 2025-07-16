@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from './auth/[...nextauth]';
 
 interface ErrorReport {
   code: string;
@@ -25,7 +24,7 @@ export default async function handler(
 
   try {
     // 获取用户会话
-    const session = await getServerSession(req, res, authOptions);
+    const session = await getServerSession(req, res);
     
     const errorReport: ErrorReport = {
       ...req.body,
