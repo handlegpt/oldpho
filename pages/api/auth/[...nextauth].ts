@@ -2,7 +2,7 @@ import NextAuth from 'next-auth';
 import EmailProvider from 'next-auth/providers/email';
 import GoogleProvider from 'next-auth/providers/google';
 
-// Simple in-memory adapter for development
+// Simple in-memory adapter for development with proper token handling
 const memoryAdapter = {
   createUser: async (data: any) => ({ id: Date.now().toString(), ...data }),
   getUser: async (id: string) => null,
@@ -16,8 +16,25 @@ const memoryAdapter = {
   getSessionAndUser: async (sessionToken: string) => null,
   updateSession: async (data: any) => data,
   deleteSession: async (sessionToken: string) => null,
-  createVerificationToken: async (data: any) => data,
-  useVerificationToken: async (params: any) => null,
+  createVerificationToken: async (data: any) => {
+    // Store token in memory for development
+    const token = {
+      identifier: data.identifier,
+      token: data.token,
+      expires: data.expires
+    };
+    console.log('Created verification token:', token);
+    return token;
+  },
+  useVerificationToken: async (params: any) => {
+    console.log('Using verification token:', params);
+    // For development, always return the token
+    return {
+      identifier: params.identifier,
+      token: params.token,
+      expires: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+    };
+  },
 };
 
 // Get email content based on language preference
@@ -133,7 +150,7 @@ if (validateEmailConfig()) {
         socketTimeout: 60000
       },
       from: process.env.EMAIL_FROM || 'OldPho <hello@oldpho.com>',
-      maxAge: 10 * 60,
+      maxAge: 10 * 60, // 10 minutes
       sendVerificationRequest: async ({ identifier, url, provider }: any) => {
         console.log('Sending verification email to:', identifier);
         
@@ -199,6 +216,21 @@ export default NextAuth({
       if (process.env.NODE_ENV === 'development') {
         console.log('NextAuth Debug:', code, ...message);
       }
+    }
+  },
+  
+  callbacks: {
+    async signIn({ user, account, profile, email, credentials }: any) {
+      console.log('SignIn callback:', { user: user?.email, account: account?.provider });
+      return true;
+    },
+    async jwt({ token, user, account, profile }: any) {
+      console.log('JWT callback:', { user: user?.email, token: token?.email });
+      return token;
+    },
+    async session({ session, token, user }: any) {
+      console.log('Session callback:', { user: session?.user?.email });
+      return session;
     }
   },
   
