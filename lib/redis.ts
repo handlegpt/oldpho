@@ -71,7 +71,7 @@ export class PhotoRestorationQueue {
     const queueName = job.priority === 'high' ? QUEUE_NAMES.HIGH_PRIORITY : QUEUE_NAMES.LOW_PRIORITY;
     
     await this.redis.lpush(queueName, JSON.stringify(fullJob));
-    await this.redis.hset(`job:${jobId}`, fullJob);
+    await this.redis.hset(`job:${jobId}`, JSON.stringify(fullJob));
     
     console.log(`Job ${jobId} added to queue with priority: ${job.priority}`);
     return jobId;
@@ -110,11 +110,12 @@ export class PhotoRestorationQueue {
   // Update job status
   async updateJobStatus(jobId: string, status: QueueJob['status'], result?: QueueJob['result'], error?: string): Promise<void> {
     const jobData = await this.redis.hgetall(`job:${jobId}`);
-    if (!jobData) {
+    if (!jobData || Object.keys(jobData).length === 0) {
       throw new Error(`Job ${jobId} not found`);
     }
 
-    const job: QueueJob = jobData as any;
+    const jobString = Object.values(jobData)[0] as string;
+    const job: QueueJob = JSON.parse(jobString);
     job.status = status;
     
     if (status === JOB_STATUS.COMPLETED && result) {
@@ -141,13 +142,19 @@ export class PhotoRestorationQueue {
       }
     }
 
-    await this.redis.hset(`job:${jobId}`, job);
+    await this.redis.hset(`job:${jobId}`, JSON.stringify(job));
   }
 
   // Get job by ID
   async getJob(jobId: string): Promise<QueueJob | null> {
     const jobData = await this.redis.hgetall(`job:${jobId}`);
-    return jobData ? (jobData as any) : null;
+    if (!jobData || Object.keys(jobData).length === 0) {
+      return null;
+    }
+    // Redis hgetall returns an object, but we stored it as JSON string
+    // So we need to get the actual job data from the object
+    const jobString = Object.values(jobData)[0] as string;
+    return jobString ? JSON.parse(jobString) : null;
   }
 
   // Get user's jobs
@@ -158,8 +165,14 @@ export class PhotoRestorationQueue {
 
     for (const key of keys) {
       const jobData = await this.redis.hgetall(key);
-      if (jobData && (jobData as any).userId === userId) {
-        jobs.push(jobData as any);
+      if (jobData && Object.keys(jobData).length > 0) {
+        const jobString = Object.values(jobData)[0] as string;
+        if (jobString) {
+          const job = JSON.parse(jobString);
+          if (job.userId === userId) {
+            jobs.push(job);
+          }
+        }
       }
     }
 
@@ -188,11 +201,14 @@ export class PhotoRestorationQueue {
 
     for (const key of keys) {
       const jobData = await this.redis.hgetall(key);
-      if (jobData) {
-        const job = jobData as any;
-        if (job.status === JOB_STATUS.PROCESSING) processing++;
-        else if (job.status === JOB_STATUS.COMPLETED) completed++;
-        else if (job.status === JOB_STATUS.FAILED) failed++;
+      if (jobData && Object.keys(jobData).length > 0) {
+        const jobString = Object.values(jobData)[0] as string;
+        if (jobString) {
+          const job = JSON.parse(jobString);
+          if (job.status === JOB_STATUS.PROCESSING) processing++;
+          else if (job.status === JOB_STATUS.COMPLETED) completed++;
+          else if (job.status === JOB_STATUS.FAILED) failed++;
+        }
       }
     }
 
@@ -214,8 +230,14 @@ export class PhotoRestorationQueue {
 
     for (const key of keys) {
       const jobData = await this.redis.hgetall(key);
-      if (jobData && (jobData as any).status === JOB_STATUS.PROCESSING) {
-        count++;
+      if (jobData && Object.keys(jobData).length > 0) {
+        const jobString = Object.values(jobData)[0] as string;
+        if (jobString) {
+          const job = JSON.parse(jobString);
+          if (job.status === JOB_STATUS.PROCESSING) {
+            count++;
+          }
+        }
       }
     }
 
@@ -246,11 +268,14 @@ export class PhotoRestorationQueue {
 
     for (const key of keys) {
       const jobData = await this.redis.hgetall(key);
-      if (jobData) {
-        const job = jobData as any;
-        if (job.status === JOB_STATUS.COMPLETED && job.completedAt < cutoffTime) {
-          await this.redis.del(key);
-          deletedCount++;
+      if (jobData && Object.keys(jobData).length > 0) {
+        const jobString = Object.values(jobData)[0] as string;
+        if (jobString) {
+          const job = JSON.parse(jobString);
+          if (job.status === JOB_STATUS.COMPLETED && job.completedAt < cutoffTime) {
+            await this.redis.del(key);
+            deletedCount++;
+          }
         }
       }
     }
