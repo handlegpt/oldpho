@@ -139,6 +139,15 @@ const Restore: NextPage = () => {
     setError(null);
 
     try {
+      // Start queue processor first
+      const startProcessorResponse = await fetch('/api/queue/start-processor', {
+        method: 'POST',
+      });
+
+      if (!startProcessorResponse.ok) {
+        console.warn('Failed to start queue processor, continuing anyway...');
+      }
+
       // Convert base64 to blob
       const response = await fetch(previewUrl);
       const blob = await response.blob();
@@ -154,7 +163,8 @@ const Restore: NextPage = () => {
       });
 
       if (!uploadResponse.ok) {
-        throw new Error('Failed to upload image');
+        const errorData = await uploadResponse.json();
+        throw new Error(errorData.error || 'Failed to upload image');
       }
 
       const { imageUrl } = await uploadResponse.json();
@@ -206,6 +216,8 @@ const Restore: NextPage = () => {
           } else if (jobData.job.status === 'failed') {
             throw new Error(jobData.job.error || 'Job processing failed');
           }
+        } else {
+          console.warn('Failed to get job status, retrying...');
         }
         
         attempts++;

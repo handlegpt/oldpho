@@ -1,10 +1,126 @@
 import { Redis } from '@upstash/redis';
 
-// Redis client configuration
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+// In-memory queue as fallback
+class MemoryQueue {
+  private jobs: Map<string, QueueJob> = new Map();
+  private highPriorityQueue: string[] = [];
+  private lowPriorityQueue: string[] = [];
+  private processingJobs: Set<string> = new Set();
+
+  async addJob(job: Omit<QueueJob, 'id' | 'status' | 'createdAt' | 'retryCount'>): Promise<string> {
+    const jobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const fullJob: QueueJob = {
+      ...job,
+      id: jobId,
+      status: JOB_STATUS.PENDING,
+      createdAt: Date.now(),
+      retryCount: 0,
+    };
+
+    this.jobs.set(jobId, fullJob);
+    
+    if (job.priority === 'high') {
+      this.highPriorityQueue.push(jobId);
+    } else {
+      this.lowPriorityQueue.push(jobId);
+    }
+    
+    console.log(`Job ${jobId} added to memory queue with priority: ${job.priority}`);
+    return jobId;
+  }
+
+  async getNextJob(): Promise<QueueJob | null> {
+    if (this.processingJobs.size >= 5) {
+      return null;
+    }
+
+    let jobId: string | undefined;
+    
+    if (this.highPriorityQueue.length > 0) {
+      jobId = this.highPriorityQueue.pop();
+    } else if (this.lowPriorityQueue.length > 0) {
+      jobId = this.lowPriorityQueue.pop();
+    }
+
+    if (!jobId) {
+      return null;
+    }
+
+    const job = this.jobs.get(jobId);
+    if (job) {
+      job.status = JOB_STATUS.PROCESSING;
+      job.startedAt = Date.now();
+      this.processingJobs.add(jobId);
+      return job;
+    }
+
+    return null;
+  }
+
+  async updateJobStatus(jobId: string, status: QueueJob['status'], result?: QueueJob['result'], error?: string): Promise<void> {
+    const job = this.jobs.get(jobId);
+    if (!job) {
+      throw new Error(`Job ${jobId} not found`);
+    }
+
+    job.status = status;
+    
+    if (status === JOB_STATUS.COMPLETED && result) {
+      job.result = result;
+      job.completedAt = Date.now();
+    } else if (status === JOB_STATUS.FAILED) {
+      job.error = error;
+      job.completedAt = Date.now();
+    }
+
+    this.processingJobs.delete(jobId);
+  }
+
+  async getJob(jobId: string): Promise<QueueJob | null> {
+    return this.jobs.get(jobId) || null;
+  }
+
+  async getUserJobs(userId: string): Promise<QueueJob[]> {
+    return Array.from(this.jobs.values())
+      .filter(job => job.userId === userId)
+      .sort((a, b) => b.createdAt - a.createdAt);
+  }
+
+  async getQueueStats(): Promise<{
+    pending: number;
+    processing: number;
+    completed: number;
+    failed: number;
+    highPriority: number;
+    lowPriority: number;
+  }> {
+    const jobs = Array.from(this.jobs.values());
+    
+    return {
+      pending: jobs.filter(j => j.status === JOB_STATUS.PENDING).length,
+      processing: this.processingJobs.size,
+      completed: jobs.filter(j => j.status === JOB_STATUS.COMPLETED).length,
+      failed: jobs.filter(j => j.status === JOB_STATUS.FAILED).length,
+      highPriority: this.highPriorityQueue.length,
+      lowPriority: this.lowPriorityQueue.length,
+    };
+  }
+
+  async getProcessingCount(): Promise<number> {
+    return this.processingJobs.size;
+  }
+
+  async cancelJob(jobId: string, userId: string): Promise<boolean> {
+    const job = this.jobs.get(jobId);
+    if (!job || job.userId !== userId) {
+      return false;
+    }
+
+    job.status = JOB_STATUS.CANCELLED;
+    this.processingJobs.delete(jobId);
+    return true;
+  }
+}
 
 // Queue configuration
 const QUEUE_NAMES = {
@@ -44,20 +160,46 @@ export interface QueueJob {
   maxRetries: number;
 }
 
+// Try to initialize Redis, fallback to memory queue
+let redisClient: Redis | null = null;
+let memoryQueue: MemoryQueue | null = null;
+
+try {
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    redisClient = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    });
+    console.log('Redis client initialized successfully');
+  } else {
+    console.warn('Redis environment variables not found, using memory queue');
+    memoryQueue = new MemoryQueue();
+  }
+} catch (error) {
+  console.warn('Failed to initialize Redis, using memory queue:', error);
+  memoryQueue = new MemoryQueue();
+}
+
 // Queue management class
 export class PhotoRestorationQueue {
-  private redis: Redis;
   private maxConcurrentJobs: number;
   private maxRetries: number;
 
   constructor(maxConcurrentJobs = 5, maxRetries = 3) {
-    this.redis = redis;
     this.maxConcurrentJobs = maxConcurrentJobs;
     this.maxRetries = maxRetries;
   }
 
   // Add job to queue
   async addJob(job: Omit<QueueJob, 'id' | 'status' | 'createdAt' | 'retryCount'>): Promise<string> {
+    if (memoryQueue) {
+      return memoryQueue.addJob(job);
+    }
+
+    if (!redisClient) {
+      throw new Error('No queue system available');
+    }
+
     const jobId = `job_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const fullJob: QueueJob = {
       ...job,
@@ -70,15 +212,23 @@ export class PhotoRestorationQueue {
     // Add to appropriate queue based on priority
     const queueName = job.priority === 'high' ? QUEUE_NAMES.HIGH_PRIORITY : QUEUE_NAMES.LOW_PRIORITY;
     
-    await this.redis.lpush(queueName, JSON.stringify(fullJob));
-    await this.redis.hset(`job:${jobId}`, { data: JSON.stringify(fullJob) });
+    await redisClient.lpush(queueName, JSON.stringify(fullJob));
+    await redisClient.hset(`job:${jobId}`, { data: JSON.stringify(fullJob) });
     
-    console.log(`Job ${jobId} added to queue with priority: ${job.priority}`);
+    console.log(`Job ${jobId} added to Redis queue with priority: ${job.priority}`);
     return jobId;
   }
 
   // Get next job from queue
   async getNextJob(): Promise<QueueJob | null> {
+    if (memoryQueue) {
+      return memoryQueue.getNextJob();
+    }
+
+    if (!redisClient) {
+      throw new Error('No queue system available');
+    }
+
     // Check if we can process more jobs
     const processingCount = await this.getProcessingCount();
     if (processingCount >= this.maxConcurrentJobs) {
@@ -86,21 +236,21 @@ export class PhotoRestorationQueue {
     }
 
     // Try high priority queue first, then low priority
-    const highPriorityJob = await this.redis.rpop(QUEUE_NAMES.HIGH_PRIORITY);
+    const highPriorityJob = await redisClient.rpop(QUEUE_NAMES.HIGH_PRIORITY);
     if (highPriorityJob) {
       const job: QueueJob = JSON.parse(highPriorityJob);
       job.status = JOB_STATUS.PROCESSING;
       job.startedAt = Date.now();
-      await this.redis.hset(`job:${job.id}`, { data: JSON.stringify(job) });
+      await redisClient.hset(`job:${job.id}`, { data: JSON.stringify(job) });
       return job;
     }
 
-    const lowPriorityJob = await this.redis.rpop(QUEUE_NAMES.LOW_PRIORITY);
+    const lowPriorityJob = await redisClient.rpop(QUEUE_NAMES.LOW_PRIORITY);
     if (lowPriorityJob) {
       const job: QueueJob = JSON.parse(lowPriorityJob);
       job.status = JOB_STATUS.PROCESSING;
       job.startedAt = Date.now();
-      await this.redis.hset(`job:${job.id}`, { data: JSON.stringify(job) });
+      await redisClient.hset(`job:${job.id}`, { data: JSON.stringify(job) });
       return job;
     }
 
@@ -109,7 +259,15 @@ export class PhotoRestorationQueue {
 
   // Update job status
   async updateJobStatus(jobId: string, status: QueueJob['status'], result?: QueueJob['result'], error?: string): Promise<void> {
-    const jobData = await this.redis.hgetall(`job:${jobId}`);
+    if (memoryQueue) {
+      return memoryQueue.updateJobStatus(jobId, status, result, error);
+    }
+
+    if (!redisClient) {
+      throw new Error('No queue system available');
+    }
+
+    const jobData = await redisClient.hgetall(`job:${jobId}`);
     if (!jobData || Object.keys(jobData).length === 0) {
       throw new Error(`Job ${jobId} not found`);
     }
@@ -135,19 +293,27 @@ export class PhotoRestorationQueue {
         
         // Add back to queue
         const queueName = job.priority === 'high' ? QUEUE_NAMES.HIGH_PRIORITY : QUEUE_NAMES.LOW_PRIORITY;
-        await this.redis.lpush(queueName, JSON.stringify(job));
+        await redisClient.lpush(queueName, JSON.stringify(job));
       } else {
         // Move to failed jobs queue
-        await this.redis.lpush(QUEUE_NAMES.FAILED_JOBS, JSON.stringify(job));
+        await redisClient.lpush(QUEUE_NAMES.FAILED_JOBS, JSON.stringify(job));
       }
     }
 
-    await this.redis.hset(`job:${jobId}`, { data: JSON.stringify(job) });
+    await redisClient.hset(`job:${jobId}`, { data: JSON.stringify(job) });
   }
 
   // Get job by ID
   async getJob(jobId: string): Promise<QueueJob | null> {
-    const jobData = await this.redis.hgetall(`job:${jobId}`);
+    if (memoryQueue) {
+      return memoryQueue.getJob(jobId);
+    }
+
+    if (!redisClient) {
+      throw new Error('No queue system available');
+    }
+
+    const jobData = await redisClient.hgetall(`job:${jobId}`);
     if (!jobData || Object.keys(jobData).length === 0) {
       return null;
     }
@@ -158,12 +324,20 @@ export class PhotoRestorationQueue {
 
   // Get user's jobs
   async getUserJobs(userId: string): Promise<QueueJob[]> {
+    if (memoryQueue) {
+      return memoryQueue.getUserJobs(userId);
+    }
+
+    if (!redisClient) {
+      throw new Error('No queue system available');
+    }
+
     const pattern = `job:*`;
-    const keys = await this.redis.keys(pattern);
+    const keys = await redisClient.keys(pattern);
     const jobs: QueueJob[] = [];
 
     for (const key of keys) {
-      const jobData = await this.redis.hgetall(key);
+      const jobData = await redisClient.hgetall(key);
       if (jobData && jobData.data) {
         const jobString = jobData.data as string;
         if (jobString) {
@@ -187,26 +361,42 @@ export class PhotoRestorationQueue {
     highPriority: number;
     lowPriority: number;
   }> {
+    if (memoryQueue) {
+      return memoryQueue.getQueueStats();
+    }
+
+    if (!redisClient) {
+      throw new Error('No queue system available');
+    }
+
     const [highPriorityCount, lowPriorityCount] = await Promise.all([
-      this.redis.llen(QUEUE_NAMES.HIGH_PRIORITY),
-      this.redis.llen(QUEUE_NAMES.LOW_PRIORITY),
+      redisClient.llen(QUEUE_NAMES.HIGH_PRIORITY),
+      redisClient.llen(QUEUE_NAMES.LOW_PRIORITY),
     ]);
 
     const pattern = `job:*`;
-    const keys = await this.redis.keys(pattern);
+    const keys = await redisClient.keys(pattern);
     let processing = 0;
     let completed = 0;
     let failed = 0;
 
     for (const key of keys) {
-      const jobData = await this.redis.hgetall(key);
+      const jobData = await redisClient.hgetall(key);
       if (jobData && jobData.data) {
         const jobString = jobData.data as string;
         if (jobString) {
           const job = JSON.parse(jobString);
-          if (job.status === JOB_STATUS.PROCESSING) processing++;
-          else if (job.status === JOB_STATUS.COMPLETED) completed++;
-          else if (job.status === JOB_STATUS.FAILED) failed++;
+          switch (job.status) {
+            case JOB_STATUS.PROCESSING:
+              processing++;
+              break;
+            case JOB_STATUS.COMPLETED:
+              completed++;
+              break;
+            case JOB_STATUS.FAILED:
+              failed++;
+              break;
+          }
         }
       }
     }
@@ -223,68 +413,106 @@ export class PhotoRestorationQueue {
 
   // Get processing count
   async getProcessingCount(): Promise<number> {
+    if (memoryQueue) {
+      return memoryQueue.getProcessingCount();
+    }
+
+    if (!redisClient) {
+      throw new Error('No queue system available');
+    }
+
     const pattern = `job:*`;
-    const keys = await this.redis.keys(pattern);
-    let count = 0;
+    const keys = await redisClient.keys(pattern);
+    let processing = 0;
 
     for (const key of keys) {
-      const jobData = await this.redis.hgetall(key);
+      const jobData = await redisClient.hgetall(key);
       if (jobData && jobData.data) {
         const jobString = jobData.data as string;
         if (jobString) {
           const job = JSON.parse(jobString);
           if (job.status === JOB_STATUS.PROCESSING) {
-            count++;
+            processing++;
           }
         }
       }
     }
 
-    return count;
+    return processing;
   }
 
   // Cancel job
   async cancelJob(jobId: string, userId: string): Promise<boolean> {
-    const job = await this.getJob(jobId);
-    if (!job || job.userId !== userId) {
+    if (memoryQueue) {
+      return memoryQueue.cancelJob(jobId, userId);
+    }
+
+    if (!redisClient) {
+      throw new Error('No queue system available');
+    }
+
+    const jobData = await redisClient.hgetall(`job:${jobId}`);
+    if (!jobData || Object.keys(jobData).length === 0) {
       return false;
     }
 
-    if (job.status === JOB_STATUS.PENDING) {
-      await this.updateJobStatus(jobId, JOB_STATUS.CANCELLED);
-      return true;
+    const jobString = jobData.data as string;
+    const job: QueueJob = JSON.parse(jobString);
+    
+    if (job.userId !== userId) {
+      return false;
     }
 
-    return false;
+    job.status = JOB_STATUS.CANCELLED;
+    await redisClient.hset(`job:${jobId}`, { data: JSON.stringify(job) });
+    return true;
   }
 
-  // Clean up old completed jobs (older than 7 days)
+  // Cleanup old jobs
   async cleanupOldJobs(): Promise<number> {
+    if (memoryQueue) {
+      // Memory queue cleanup
+      const now = Date.now();
+      const oneDayAgo = now - 24 * 60 * 60 * 1000;
+      let cleaned = 0;
+
+      for (const [jobId, job] of memoryQueue.jobs.entries()) {
+        if (job.createdAt < oneDayAgo && job.status !== JOB_STATUS.PROCESSING) {
+          memoryQueue.jobs.delete(jobId);
+          cleaned++;
+        }
+      }
+
+      return cleaned;
+    }
+
+    if (!redisClient) {
+      throw new Error('No queue system available');
+    }
+
     const pattern = `job:*`;
-    const keys = await this.redis.keys(pattern);
-    const cutoffTime = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7 days
-    let deletedCount = 0;
+    const keys = await redisClient.keys(pattern);
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+    let cleaned = 0;
 
     for (const key of keys) {
-      const jobData = await this.redis.hgetall(key);
+      const jobData = await redisClient.hgetall(key);
       if (jobData && jobData.data) {
         const jobString = jobData.data as string;
         if (jobString) {
           const job = JSON.parse(jobString);
-          if (job.status === JOB_STATUS.COMPLETED && job.completedAt < cutoffTime) {
-            await this.redis.del(key);
-            deletedCount++;
+          if (job.createdAt < oneDayAgo && job.status !== JOB_STATUS.PROCESSING) {
+            await redisClient.del(key);
+            cleaned++;
           }
         }
       }
     }
 
-    return deletedCount;
+    return cleaned;
   }
 }
 
 // Export singleton instance
-export const photoRestorationQueue = new PhotoRestorationQueue(10);
-
-// Export Redis instance for other uses
-export { redis }; 
+export const photoRestorationQueue = new PhotoRestorationQueue(); 
