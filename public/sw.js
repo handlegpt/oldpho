@@ -6,9 +6,7 @@ const STATIC_ASSETS = [
   '/',
   '/restore',
   '/static/css/globals.css',
-  '/fonts/inter-var.woff2',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
+  '/favicon.ico',
   '/manifest.json'
 ];
 
@@ -131,8 +129,8 @@ async function doBackgroundSync() {
 self.addEventListener('push', (event) => {
   const options = {
     body: event.data ? event.data.text() : 'OldPho 有新消息',
-    icon: '/icon-192x192.png',
-    badge: '/icon-72x72.png',
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
@@ -142,12 +140,12 @@ self.addEventListener('push', (event) => {
       {
         action: 'explore',
         title: '查看详情',
-        icon: '/icon-192x192.png'
+        icon: '/favicon.ico'
       },
       {
         action: 'close',
         title: '关闭',
-        icon: '/icon-192x192.png'
+        icon: '/favicon.ico'
       }
     ]
   };

@@ -396,8 +396,7 @@ export class ResourcePreloader {
   // 预加载关键资源
   async preloadCriticalResources() {
     const criticalResources = [
-      '/fonts/inter-var.woff2',
-      '/icon-192x192.png',
+      '/favicon.ico',
       '/manifest.json'
     ];
 
