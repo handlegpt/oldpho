@@ -169,7 +169,7 @@ const Restore: NextPage = () => {
 
       console.log('Progress: 100%');
       setProgress(100);
-      setResult(result.processedImageUrl);
+      setResult(result.processedImageUrl.replace('/api/uploads/', '/uploads/'));
       setSuccess(getSuccessMessage());
 
     } catch (err) {

@@ -71,8 +71,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       processed: processedPath
     });
 
-    const originalImageUrl = `/api/uploads/${originalFilename}`;
-    const processedImageUrl = `/api/uploads/${processedFilename}`;
+    const originalImageUrl = `/uploads/${originalFilename}`;
+    const processedImageUrl = `/uploads/${processedFilename}`;
 
     console.log('File uploaded and processed successfully:', {
       original: originalImageUrl,
