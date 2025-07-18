@@ -29,9 +29,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Ensure uploads directory exists in public folder
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-      console.log('Created uploads directory:', uploadsDir);
+    
+    // Create directory with proper permissions
+    try {
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true, mode: 0o777 });
+        console.log('Created uploads directory:', uploadsDir);
+      }
+      
+      // Ensure directory is writable
+      fs.accessSync(uploadsDir, fs.constants.W_OK);
+      console.log('Uploads directory is writable');
+    } catch (dirError) {
+      console.error('Directory creation/access error:', dirError);
+      return res.status(500).json({ 
+        error: 'Failed to create or access uploads directory',
+        message: dirError instanceof Error ? dirError.message : 'Unknown directory error'
+      });
     }
 
     // For now, create a simple test image instead of processing real upload
@@ -62,14 +76,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       0x00, 0xFF, 0xD9
     ]);
 
-    // Write test images
-    fs.writeFileSync(originalPath, testImageData);
-    fs.writeFileSync(processedPath, testImageData);
-
-    console.log('Test images created:', {
-      original: originalPath,
-      processed: processedPath
-    });
+    // Write test images with error handling
+    try {
+      fs.writeFileSync(originalPath, testImageData);
+      fs.writeFileSync(processedPath, testImageData);
+      
+      console.log('Test images created:', {
+        original: originalPath,
+        processed: processedPath
+      });
+    } catch (writeError) {
+      console.error('File write error:', writeError);
+      return res.status(500).json({ 
+        error: 'Failed to write image files',
+        message: writeError instanceof Error ? writeError.message : 'Unknown write error'
+      });
+    }
 
     const originalImageUrl = `/uploads/${originalFilename}`;
     const processedImageUrl = `/uploads/${processedFilename}`;
