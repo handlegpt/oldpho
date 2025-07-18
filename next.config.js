@@ -66,6 +66,16 @@ const nextConfig = {
   // Output configuration
   output: 'standalone',
 
+  // Static file serving configuration
+  async rewrites() {
+    return [
+      {
+        source: '/uploads/:path*',
+        destination: '/api/static/uploads/:path*',
+      },
+    ];
+  },
+
   // Redirect configuration
   async redirects() {
     return [
@@ -115,6 +125,15 @@ const nextConfig = {
           {
             key: 'Expires',
             value: '0',
+          },
+        ],
+      },
+      {
+        source: '/uploads/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },
