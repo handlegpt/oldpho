@@ -76,40 +76,46 @@ function isStaticAsset(pathname) {
 
 // 缓存优先策略
 async function cacheFirst(request) {
-  const cachedResponse = await caches.match(request);
-  if (cachedResponse) {
-    return cachedResponse;
-  }
-
   try {
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      const cache = await caches.open(STATIC_CACHE);
-      cache.put(request, networkResponse.clone());
+    // 跳过不支持的URL scheme
+    const url = new URL(request.url);
+    if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:' || url.protocol === 'ms-browser-extension:') {
+      return fetch(request);
     }
+    
+    const cache = await caches.open(STATIC_CACHE);
+    const cachedResponse = await cache.match(request);
+    
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    const networkResponse = await fetch(request);
+    cache.put(request, networkResponse.clone());
     return networkResponse;
   } catch (error) {
     console.log('Cache first failed:', error);
-    return new Response('Network error', { status: 503 });
+    return fetch(request);
   }
 }
 
 // 网络优先策略
 async function networkFirst(request) {
   try {
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE);
-      cache.put(request, networkResponse.clone());
+    // 跳过不支持的URL scheme
+    const url = new URL(request.url);
+    if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:' || url.protocol === 'ms-browser-extension:') {
+      return fetch(request);
     }
+    
+    const networkResponse = await fetch(request);
+    const cache = await caches.open(DYNAMIC_CACHE);
+    cache.put(request, networkResponse.clone());
     return networkResponse;
   } catch (error) {
-    console.log('Network first failed, trying cache:', error);
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    return new Response('Network error', { status: 503 });
+    console.log('Network first failed:', error);
+    const cache = await caches.open(DYNAMIC_CACHE);
+    return cache.match(request) || new Response('Network error', { status: 503 });
   }
 }
 

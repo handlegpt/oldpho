@@ -49,9 +49,12 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-# 确保uploads目录存在并设置权限
-RUN mkdir -p public/uploads && chown -R nextjs:nodejs public/uploads && chmod 755 public/uploads
+# 确保uploads目录存在并设置正确权限
+RUN mkdir -p public/uploads && \
+    chown -R nextjs:nodejs public/uploads && \
+    chmod 777 public/uploads
 
+# 设置整个应用目录的权限
 RUN chown -R nextjs:nodejs /app
 USER nextjs
 
