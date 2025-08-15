@@ -41,7 +41,7 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 
 COPY package*.json ./
-RUN npm ci --only=production --prefer-offline --no-audit --progress=false || npm install --only=production --prefer-offline --no-audit --progress=false
+RUN npm ci --prefer-offline --no-audit --progress=false || npm install --only=production --prefer-offline --no-audit --progress=false
 
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
