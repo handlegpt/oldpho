@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import formidable from 'formidable';
 import { replicate } from '../../lib/replicate';
+import prisma from '../../lib/prismadb';
 
 export const config = {
   api: {
@@ -148,6 +149,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       processedPath,
       userId: session.user.email
     });
+
+    // Save restoration record to database
+    try {
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email! }
+      });
+
+      if (user) {
+        await prisma.restoration.create({
+          data: {
+            userId: user.id,
+            originalImage: originalImageUrl,
+            restoredImage: processedImageUrl,
+            status: 'completed',
+            processingTime: Date.now() - timestamp
+          }
+        });
+        console.log('Restoration record saved to database');
+      }
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      // Don't fail the request if database save fails
+    }
 
     return res.status(200).json({
       success: true,

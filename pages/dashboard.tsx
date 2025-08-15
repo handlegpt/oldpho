@@ -26,6 +26,8 @@ const Dashboard: NextPage = () => {
     usedStorage: 0
   });
 
+  const [loading, setLoading] = useState(true);
+
   const [recentActivity, setRecentActivity] = useState([
     {
       id: 1,
@@ -50,6 +52,30 @@ const Dashboard: NextPage = () => {
       router.push('/restore');
     }
   }, [status, router]);
+
+  // Fetch user stats when session is available
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (status === 'authenticated' && session?.user) {
+        try {
+          setLoading(true);
+          const response = await fetch('/api/stats');
+          if (response.ok) {
+            const stats = await response.json();
+            setUserStats(stats);
+          } else {
+            console.error('Failed to fetch stats:', response.statusText);
+          }
+        } catch (error) {
+          console.error('Error fetching stats:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchStats();
+  }, [status, session]);
 
   if (status === 'loading') {
     return (
@@ -215,7 +241,13 @@ const Dashboard: NextPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">{getDashboardText('totalRestorations')}</p>
-                    <p className="text-2xl font-bold text-gray-900">{userStats.totalRestorations}</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {loading ? (
+                        <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
+                      ) : (
+                        userStats.totalRestorations
+                      )}
+                    </p>
                   </div>
                   <div className="p-3 bg-blue-100 rounded-full">
                     <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
