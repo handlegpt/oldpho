@@ -79,7 +79,7 @@ const AdminUsers: NextPage = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const getPlanBadge = (planId: string | null) => {
+  const getPlanBadge = (planId: string | null | undefined) => {
     if (!planId) return <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">Free</span>;
     
     switch (planId) {
