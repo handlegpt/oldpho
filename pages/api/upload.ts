@@ -57,10 +57,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       maxFileSize: 10 * 1024 * 1024, // 10MB
     });
 
+    console.log('Parsing form data...');
     const [fields, files] = await form.parse(req);
+    
+    console.log('Form fields:', fields);
+    console.log('Form files:', files);
+    console.log('Files keys:', Object.keys(files));
+    
     const uploadedFile = files.image?.[0]; // Assuming the field name is 'image'
+    console.log('Uploaded file:', uploadedFile);
 
     if (!uploadedFile) {
+      console.log('No image file found. Available files:', files);
       return res.status(400).json({ error: 'No image file uploaded' });
     }
 
