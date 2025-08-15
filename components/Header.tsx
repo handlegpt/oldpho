@@ -80,20 +80,23 @@ export default function Header({ photo }: HeaderProps) {
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex items-center space-x-2 hover:opacity-80 transition-opacity min-h-[44px] px-2 touch-manipulation"
+              className="flex items-center space-x-2 hover:bg-gray-50 rounded-lg px-2 py-1 transition-all duration-200 min-h-[44px] touch-manipulation"
             >
-              <Image
-                alt='Profile picture'
-                src={session.user.image || '/default-avatar.png'}
-                className='w-8 sm:w-10 rounded-full'
-                width={32}
-                height={32}
-              />
+              <div className="relative">
+                <Image
+                  alt='Profile picture'
+                  src={session.user.image || '/default-avatar.png'}
+                  className='w-8 sm:w-10 rounded-full border-2 border-gray-200 hover:border-blue-300 transition-colors duration-200'
+                  width={32}
+                  height={32}
+                />
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+              </div>
               <span className="hidden sm:block text-sm font-medium text-gray-700">
                 {session.user.name || session.user.email}
               </span>
               <svg 
-                className={`w-4 h-4 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`}
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"

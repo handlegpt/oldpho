@@ -146,6 +146,10 @@ const Home: NextPage = () => {
             {/* Features Section */}
             <section className="py-20">
               <div className="text-center mb-16">
+                <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-6">
+                  <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
+                  Features
+                </div>
                 <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
                   {t.features.title}
                 </h2>
@@ -156,13 +160,13 @@ const Home: NextPage = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {t.features.items.map((feature, index) => (
-                  <AnimatedCard key={index} className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 hover:border-blue-200 transition-all duration-300">
+                  <AnimatedCard key={index} className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 hover:border-blue-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                     <div className="text-center p-8">
-                      <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                        <div className="text-3xl">{feature.icon}</div>
+                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg">
+                        <div className="text-2xl text-white">{feature.icon}</div>
                       </div>
-                      <h3 className="text-xl font-bold mb-4 text-gray-900">{feature.title}</h3>
-                      <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                      <h3 className="text-xl font-bold mb-4 text-gray-900 group-hover:text-blue-600 transition-colors duration-300">{feature.title}</h3>
+                      <p className="text-gray-600 leading-relaxed text-sm">{feature.description}</p>
                     </div>
                   </AnimatedCard>
                 ))}
@@ -170,23 +174,34 @@ const Home: NextPage = () => {
             </section>
 
             {/* How It Works Section */}
-            <section className="py-16">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            <section className="py-20">
+              <div className="text-center mb-16">
+                <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium mb-6">
+                  <span className="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
+                  Process
+                </div>
+                <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
                   {t.howItWorks.title}
                 </h2>
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                   {t.howItWorks.subtitle}
                 </p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {t.howItWorks.steps.map((step, index) => (
-                  <AnimatedCard key={index}>
-                    <div className="text-center p-6">
-                      <div className="text-3xl font-bold text-blue-600 mb-4">{index + 1}</div>
-                      <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
-                      <p className="text-gray-600">{step.description}</p>
+                  <AnimatedCard key={index} className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 hover:border-green-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                    <div className="text-center p-8 relative">
+                      <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                        <div className="text-2xl font-bold text-white">{index + 1}</div>
+                      </div>
+                      <h3 className="text-xl font-bold mb-4 text-gray-900 group-hover:text-green-600 transition-colors duration-300">{step.title}</h3>
+                      <p className="text-gray-600 leading-relaxed text-sm">{step.description}</p>
+                      
+                      {/* Connection line for desktop */}
+                      {index < 2 && (
+                        <div className="hidden md:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-green-400 to-blue-400 transform -translate-y-1/2"></div>
+                      )}
                     </div>
                   </AnimatedCard>
                 ))}
