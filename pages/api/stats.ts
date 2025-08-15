@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from './auth/[...nextauth]';
 import prisma from '../../lib/prismadb';
+import { Restoration } from '@prisma/client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -35,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const thisMonthRestorations = user.restorations.filter(
-      restoration => restoration.createdAt >= startOfMonth
+      (restoration: Restoration) => restoration.createdAt >= startOfMonth
     ).length;
 
     // Get plan type
