@@ -86,7 +86,12 @@ const nextConfig = {
 
   // Static file serving configuration - serve uploads directory directly
   async rewrites() {
-    return [];
+    return [
+      {
+        source: '/uploads/:path*',
+        destination: '/api/images/:path*',
+      },
+    ];
   },
 
   // Redirect configuration
@@ -151,6 +156,24 @@ const nextConfig = {
         ],
       },
     ];
+  },
+
+  // Environment variables
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+  },
+
+  // Page optimization
+  onDemandEntries: {
+    // Time pages stay in memory (milliseconds)
+    maxInactiveAge: 25 * 1000,
+    // Number of pages to keep simultaneously
+    pagesBufferLength: 2,
+  },
+};
+
+module.exports = withBundleAnalyzer(nextConfig);
+
   },
 
   // Environment variables
