@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         },
         orderBy: {
-          createdAt: 'desc'
+          id: 'desc'
         },
         skip: offset,
         take: limit
