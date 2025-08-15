@@ -1,9 +1,14 @@
 export const replicate = {
   run: async (model: string, options: any) => {
     try {
-      // Check if REPLICATE_API_TOKEN is configured
-      if (!process.env.REPLICATE_API_TOKEN) {
-        console.warn('REPLICATE_API_TOKEN not configured, using mock response');
+      // Check if REPLICATE_API_TOKEN or REPLICATE_API_KEY is configured
+      const apiToken = process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_KEY;
+      console.log('API Token configured:', !!apiToken);
+      console.log('Model:', model);
+      console.log('Options:', JSON.stringify(options, null, 2));
+      
+      if (!apiToken) {
+        console.warn('REPLICATE_API_TOKEN/REPLICATE_API_KEY not configured, using mock response');
         return options.input.img;
       }
 
@@ -11,7 +16,7 @@ export const replicate = {
       const response = await fetch('https://api.replicate.com/v1/predictions', {
         method: 'POST',
         headers: {
-          'Authorization': `Token ${process.env.REPLICATE_API_TOKEN}`,
+          'Authorization': `Token ${apiToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -35,7 +40,7 @@ export const replicate = {
         
         const statusResponse = await fetch(prediction.urls.get, {
           headers: {
-            'Authorization': `Token ${process.env.REPLICATE_API_TOKEN}`,
+            'Authorization': `Token ${apiToken}`,
           },
         });
 
