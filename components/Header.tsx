@@ -54,16 +54,17 @@ export default function Header({ photo }: HeaderProps) {
   };
 
   return (
-    <header className='flex justify-between items-center w-full border-b-2 pt-4 sm:pt-6 pb-4 sm:pb-7 px-4 sm:px-6 lg:px-8'>
-      <Link href='/' className='flex space-x-2 items-center min-h-[44px] touch-manipulation'>
-        <Image
-          alt='header text'
-          src='/imageIcon.png'
-          className='w-6 h-6 sm:w-10 sm:h-10'
-          width={20}
-          height={20}
-        />
-        <h1 className='text-lg sm:text-3xl font-bold ml-2 tracking-tight'>
+    <header className='flex justify-between items-center w-full border-b border-gray-200/50 bg-white/80 backdrop-blur-sm pt-4 sm:pt-6 pb-4 sm:pb-7 px-4 sm:px-6 lg:px-8 sticky top-0 z-50'>
+      <Link href='/' className='flex space-x-2 items-center min-h-[44px] touch-manipulation group'>
+        <div className='relative'>
+          <div className='w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300'>
+            <svg className='w-5 h-5 sm:w-7 sm:h-7 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' />
+            </svg>
+          </div>
+          <div className='absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-full border-2 border-white'></div>
+        </div>
+        <h1 className='text-lg sm:text-3xl font-bold ml-2 tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent'>
           OldPho
         </h1>
       </Link>
@@ -155,19 +156,19 @@ export default function Header({ photo }: HeaderProps) {
           <div className='flex space-x-2 sm:space-x-4 lg:space-x-8'>
             <Link
               href='/'
-              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[44px] px-3 sm:px-4'
+              className='hover:text-blue-600 transition-colors duration-200 flex items-center touch-manipulation min-h-[44px] px-3 sm:px-4 rounded-lg hover:bg-blue-50'
             >
               <p className='font-medium text-sm sm:text-base'>{t.navigation.home}</p>
             </Link>
             <button
               onClick={handleRestoreClick}
-              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[44px] px-3 sm:px-4'
+              className='hover:text-blue-600 transition-colors duration-200 flex items-center touch-manipulation min-h-[44px] px-3 sm:px-4 rounded-lg hover:bg-blue-50'
             >
               <p className='font-medium text-sm sm:text-base'>{t.navigation.restore}</p>
             </button>
             <Link
               href='/pricing'
-              className='hover:text-blue-400 transition flex items-center touch-manipulation min-h-[44px] px-3 sm:px-4'
+              className='hover:text-blue-600 transition-colors duration-200 flex items-center touch-manipulation min-h-[44px] px-3 sm:px-4 rounded-lg hover:bg-blue-50'
             >
               <p className='font-medium text-sm sm:text-base'>
                 {currentLanguage === 'zh-TW' ? '价格' : currentLanguage === 'ja' ? '料金' : 'Pricing'}
