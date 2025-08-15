@@ -131,26 +131,28 @@ const Restore: NextPage = () => {
   };
 
   const handleRestore = async () => {
-    if (!previewUrl) return;
+    if (!selectedFile) {
+      setError(currentLanguage === 'zh-TW' ? '请先选择图片' : 
+              currentLanguage === 'ja' ? '画像を選択してください' :
+              'Please select an image first');
+      return;
+    }
 
-    console.log('Starting restore process...');
     setIsProcessing(true);
-    setProgress(0);
     setError(null);
+    setSuccess(null);
 
     try {
       console.log('Progress: 10%');
       setProgress(10);
 
-      // Simplified approach - just call the upload API
+      // Create FormData and append the file
+      const formData = new FormData();
+      formData.append('image', selectedFile);
+
       const uploadResponse = await fetch('/api/upload', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          test: true
-        }),
+        body: formData, // Don't set Content-Type header, let browser set it with boundary
       });
 
       console.log('Upload response status:', uploadResponse.status);
@@ -169,7 +171,7 @@ const Restore: NextPage = () => {
 
       console.log('Progress: 100%');
       setProgress(100);
-      setResult(result.processedImageUrl.replace('/api/uploads/', '/uploads/'));
+      setResult(result.processedImageUrl);
       setSuccess(getSuccessMessage());
 
     } catch (err) {

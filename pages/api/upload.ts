@@ -3,11 +3,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from './auth/[...nextauth]';
 import fs from 'fs';
 import path from 'path';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../../lib/prismadb';
 import formidable from 'formidable';
 import { replicate } from '../../lib/replicate';
-
-const prisma = new PrismaClient();
 
 export const config = {
   api: {
