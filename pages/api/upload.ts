@@ -91,11 +91,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Call Replicate API for AI image restoration
       console.log('Calling Replicate API for image restoration...');
       
+      // Convert image to base64 for Replicate API
+      const imageBuffer = fs.readFileSync(originalPath);
+      const base64Image = imageBuffer.toString('base64');
+      const dataUrl = `data:image/jpeg;base64,${base64Image}`;
+      
+      console.log('Sending base64 image to Replicate API...');
+      
       const result = await replicate.run(
         "tencentarc/gfpgan:9283608cc6b7be6b65a8e44983db012355fde4132009bf99d976b2f0896856a3",
         {
           input: {
-            img: originalPath,
+            img: dataUrl,
             version: "v1.4",
             scale: 2
           }
