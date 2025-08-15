@@ -84,14 +84,9 @@ const nextConfig = {
   // Output configuration
   output: 'standalone',
 
-  // Static file serving configuration
+  // Static file serving configuration - serve uploads directory directly
   async rewrites() {
-    return [
-      {
-        source: '/uploads/:path*',
-        destination: '/api/static/uploads/:path*',
-      },
-    ];
+    return [];
   },
 
   // Redirect configuration
