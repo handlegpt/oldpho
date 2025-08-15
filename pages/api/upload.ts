@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from './auth/[...nextauth]';
 import fs from 'fs';
 import path from 'path';
-import prisma from '../../lib/prismadb';
 import formidable from 'formidable';
 import { replicate } from '../../lib/replicate';
 
@@ -78,19 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Move uploaded file to final location
     fs.renameSync(uploadedFile.filepath, originalPath);
 
-    // Create restoration record with processing status
-    const startTime = Date.now();
-    const restoration = await prisma.restoration.create({
-      data: {
-        userId: session.user.email!,
-        originalImage: `/uploads/${originalFilename}`,
-        restoredImage: `/uploads/${processedFilename}`,
-        status: 'processing',
-        processingTime: null,
-      },
-    });
-
-    console.log('Restoration record created:', restoration);
+    console.log('Original file saved:', originalPath);
 
     try {
       // Call Replicate API for AI image restoration
@@ -125,16 +112,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         fs.copyFileSync(originalPath, processedPath);
       }
 
-      // Update restoration record with success
-      const processingTime = Date.now() - startTime;
-      await prisma.restoration.update({
-        where: { id: restoration.id },
-        data: {
-          status: 'completed',
-          processingTime,
-        },
-      });
-
       console.log('Restoration completed successfully');
 
     } catch (aiError) {
@@ -143,16 +120,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Create a fallback processed image
       fs.copyFileSync(originalPath, processedPath);
       
-      // Update restoration record with error
-      const processingTime = Date.now() - startTime;
-      await prisma.restoration.update({
-        where: { id: restoration.id },
-        data: {
-          status: 'failed',
-          processingTime,
-        },
-      });
-
       console.log('Using fallback due to AI processing error');
     }
 
@@ -164,8 +131,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       processed: processedImageUrl,
       originalPath,
       processedPath,
-      userId: session.user.email,
-      restorationId: restoration.id
+      userId: session.user.email
     });
 
     return res.status(200).json({
@@ -173,7 +139,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       imageUrl: originalImageUrl,
       processedImageUrl: processedImageUrl,
       filename: originalFilename,
-      restorationId: restoration.id,
     });
 
   } catch (error) {
