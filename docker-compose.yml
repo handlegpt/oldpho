@@ -25,6 +25,8 @@ services:
       - NEXT_PUBLIC_UPLOAD_API_KEY=${NEXT_PUBLIC_UPLOAD_API_KEY}
       - NEXT_PUBLIC_PLAUSIBLE_DOMAIN=${NEXT_PUBLIC_PLAUSIBLE_DOMAIN:-oldpho.com}
       - TRUSTED_PROXY=true
+      - HOST=0.0.0.0
+      - PORT=3001
     depends_on:
       - db
       - redis
