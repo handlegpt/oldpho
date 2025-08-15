@@ -6,6 +6,8 @@ export const replicate = {
       console.log('API Token configured:', !!apiToken);
       console.log('API Token length:', apiToken ? apiToken.length : 0);
       console.log('API Token preview:', apiToken ? `${apiToken.substring(0, 4)}...${apiToken.substring(apiToken.length - 4)}` : 'none');
+      console.log('API Token starts with r8_:', apiToken ? apiToken.startsWith('r8_') : false);
+      console.log('Full API Token (first 10 chars):', apiToken ? apiToken.substring(0, 10) : 'none');
       console.log('Model:', model);
       console.log('Options:', JSON.stringify(options, null, 2));
       
@@ -19,7 +21,7 @@ export const replicate = {
       const response = await fetch('https://api.replicate.com/v1/predictions', {
         method: 'POST',
         headers: {
-          'Authorization': `Token ${apiToken}`,
+          'Authorization': `Bearer ${apiToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -50,7 +52,7 @@ export const replicate = {
         console.log(`Polling attempt ${attempts + 1}/${maxAttempts}...`);
         const statusResponse = await fetch(prediction.urls.get, {
           headers: {
-            'Authorization': `Token ${apiToken}`,
+            'Authorization': `Bearer ${apiToken}`,
           },
         });
 
