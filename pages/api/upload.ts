@@ -3,6 +3,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from './auth/[...nextauth]';
 import fs from 'fs';
 import path from 'path';
+import { PrismaClient } from '@prisma/client';
+import formidable from 'formidable';
+
+const prisma = new PrismaClient();
 
 export const config = {
   api: {
@@ -48,16 +52,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // For now, create a simple test image instead of processing real upload
-    // This will help us debug the issue
+    // Parse the uploaded file
+    const form = formidable({
+      uploadDir: uploadsDir,
+      keepExtensions: true,
+      maxFileSize: 10 * 1024 * 1024, // 10MB
+    });
+
+    const [fields, files] = await form.parse(req);
+    const uploadedFile = files.image?.[0]; // Assuming the field name is 'image'
+
+    if (!uploadedFile) {
+      return res.status(400).json({ error: 'No image file uploaded' });
+    }
+
+    console.log('File uploaded:', uploadedFile);
+
+    // Generate unique filenames
     const timestamp = Date.now();
-    const originalFilename = `original_${timestamp}_test.jpg`;
-    const processedFilename = `processed_${timestamp}_test.jpg`;
+    const originalFilename = `original_${timestamp}_${path.basename(uploadedFile.originalFilename || 'image.jpg')}`;
+    const processedFilename = `processed_${timestamp}_${path.basename(uploadedFile.originalFilename || 'image.jpg')}`;
     
     const originalPath = path.join(uploadsDir, originalFilename);
     const processedPath = path.join(uploadsDir, processedFilename);
 
-    // Create a simple test image (1x1 pixel JPEG)
+    // Move uploaded file to final location
+    fs.renameSync(uploadedFile.filepath, originalPath);
+
+    // For now, create a simple processed image (in real app, this would call AI service)
+    // TODO: Integrate with Replicate API for actual image restoration
     const testImageData = Buffer.from([
       0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01,
       0x01, 0x01, 0x00, 0x48, 0x00, 0x48, 0x00, 0x00, 0xFF, 0xDB, 0x00, 0x43,
@@ -76,34 +99,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       0x00, 0xFF, 0xD9
     ]);
 
-    // Write test images with error handling
-    try {
-      fs.writeFileSync(originalPath, testImageData);
-      fs.writeFileSync(processedPath, testImageData);
-      
-      // Verify files were created
-      if (!fs.existsSync(originalPath)) {
-        throw new Error('Original file was not created');
-      }
-      if (!fs.existsSync(processedPath)) {
-        throw new Error('Processed file was not created');
-      }
-      
-      console.log('Test images created and verified:', {
-        original: originalPath,
-        processed: processedPath,
-        originalExists: fs.existsSync(originalPath),
-        processedExists: fs.existsSync(processedPath),
-        originalSize: fs.statSync(originalPath).size,
-        processedSize: fs.statSync(processedPath).size
-      });
-    } catch (writeError) {
-      console.error('File write error:', writeError);
-      return res.status(500).json({ 
-        error: 'Failed to write image files',
-        message: writeError instanceof Error ? writeError.message : 'Unknown write error'
-      });
-    }
+    fs.writeFileSync(processedPath, testImageData);
+
+    // Save restoration record to database
+    const startTime = Date.now();
+    const restoration = await prisma.restoration.create({
+      data: {
+        userId: session.user.email!,
+        originalImage: `/uploads/${originalFilename}`,
+        restoredImage: `/uploads/${processedFilename}`,
+        status: 'completed',
+        processingTime: Date.now() - startTime,
+      },
+    });
+
+    console.log('Restoration record created:', restoration);
 
     const originalImageUrl = `/uploads/${originalFilename}`;
     const processedImageUrl = `/uploads/${processedFilename}`;
@@ -113,7 +123,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       processed: processedImageUrl,
       originalPath,
       processedPath,
-      userId: session.user.email
+      userId: session.user.email,
+      restorationId: restoration.id
     });
 
     return res.status(200).json({
@@ -121,6 +132,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       imageUrl: originalImageUrl,
       processedImageUrl: processedImageUrl,
       filename: originalFilename,
+      restorationId: restoration.id,
     });
 
   } catch (error) {
