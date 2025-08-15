@@ -118,6 +118,13 @@ export default function Header({ photo }: HeaderProps) {
                   {currentLanguage === 'zh-TW' ? '仪表板' : currentLanguage === 'ja' ? 'ダッシュボード' : 'Dashboard'}
                 </Link>
                 <Link
+                  href="/admin"
+                  className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors touch-manipulation"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {currentLanguage === 'zh-TW' ? '管理员后台' : currentLanguage === 'ja' ? '管理者ダッシュボード' : 'Admin Dashboard'}
+                </Link>
+                <Link
                   href="/restore"
                   className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors touch-manipulation"
                   onClick={() => setIsMenuOpen(false)}
