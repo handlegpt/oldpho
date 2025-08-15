@@ -1,6 +1,6 @@
-const CACHE_NAME = 'oldpho-v1.0.0';
-const STATIC_CACHE = 'static-v1';
-const DYNAMIC_CACHE = 'dynamic-v1';
+const CACHE_NAME = 'oldpho-v1.0.1';
+const STATIC_CACHE = 'static-v1.1';
+const DYNAMIC_CACHE = 'dynamic-v1.1';
 
 const STATIC_ASSETS = [
   '/',
