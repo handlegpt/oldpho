@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Check if file exists
     if (!fs.existsSync(normalizedPath)) {
-      console.log('File not found:', normalizedPath);
+      console.log('File not found in API:', normalizedPath);
       return res.status(404).json({ error: 'File not found' });
     }
 
@@ -65,4 +65,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
-} 
+}
