@@ -81,9 +81,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       fs.writeFileSync(originalPath, testImageData);
       fs.writeFileSync(processedPath, testImageData);
       
-      console.log('Test images created:', {
+      // Verify files were created
+      if (!fs.existsSync(originalPath)) {
+        throw new Error('Original file was not created');
+      }
+      if (!fs.existsSync(processedPath)) {
+        throw new Error('Processed file was not created');
+      }
+      
+      console.log('Test images created and verified:', {
         original: originalPath,
-        processed: processedPath
+        processed: processedPath,
+        originalExists: fs.existsSync(originalPath),
+        processedExists: fs.existsSync(processedPath),
+        originalSize: fs.statSync(originalPath).size,
+        processedSize: fs.statSync(processedPath).size
       });
     } catch (writeError) {
       console.error('File write error:', writeError);

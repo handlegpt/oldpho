@@ -100,7 +100,7 @@ const nextConfig = {
     ];
   },
 
-  // Headers configuration
+  // Serve static files from public/uploads directory
   async headers() {
     return [
       {
