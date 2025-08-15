@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { PrismaClient } from '@prisma/client';
 import formidable from 'formidable';
+import { replicate } from '../../lib/replicate';
 
 const prisma = new PrismaClient();
 
@@ -79,41 +80,83 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Move uploaded file to final location
     fs.renameSync(uploadedFile.filepath, originalPath);
 
-    // For now, create a simple processed image (in real app, this would call AI service)
-    // TODO: Integrate with Replicate API for actual image restoration
-    const testImageData = Buffer.from([
-      0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01,
-      0x01, 0x01, 0x00, 0x48, 0x00, 0x48, 0x00, 0x00, 0xFF, 0xDB, 0x00, 0x43,
-      0x00, 0x08, 0x06, 0x06, 0x07, 0x06, 0x05, 0x08, 0x07, 0x07, 0x07, 0x09,
-      0x09, 0x08, 0x0A, 0x0C, 0x14, 0x0D, 0x0C, 0x0B, 0x0B, 0x0C, 0x19, 0x12,
-      0x13, 0x0F, 0x14, 0x1D, 0x1A, 0x1F, 0x1E, 0x1D, 0x1A, 0x1C, 0x1C, 0x20,
-      0x24, 0x2E, 0x27, 0x20, 0x22, 0x2C, 0x23, 0x1C, 0x1C, 0x28, 0x37, 0x29,
-      0x2C, 0x30, 0x31, 0x34, 0x34, 0x34, 0x1F, 0x27, 0x39, 0x3D, 0x38, 0x32,
-      0x3C, 0x2E, 0x33, 0x34, 0x32, 0xFF, 0xC0, 0x00, 0x11, 0x08, 0x00, 0x01,
-      0x00, 0x01, 0x01, 0x01, 0x11, 0x00, 0x02, 0x11, 0x01, 0x03, 0x11, 0x01,
-      0xFF, 0xC4, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0xFF, 0xC4,
-      0x00, 0x14, 0x10, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xDA, 0x00, 0x0C,
-      0x03, 0x01, 0x00, 0x02, 0x11, 0x03, 0x11, 0x00, 0x3F, 0x00, 0x8A, 0x00,
-      0x00, 0xFF, 0xD9
-    ]);
-
-    fs.writeFileSync(processedPath, testImageData);
-
-    // Save restoration record to database
+    // Create restoration record with processing status
     const startTime = Date.now();
     const restoration = await prisma.restoration.create({
       data: {
         userId: session.user.email!,
         originalImage: `/uploads/${originalFilename}`,
         restoredImage: `/uploads/${processedFilename}`,
-        status: 'completed',
-        processingTime: Date.now() - startTime,
+        status: 'processing',
+        processingTime: null,
       },
     });
 
     console.log('Restoration record created:', restoration);
+
+    try {
+      // Call Replicate API for AI image restoration
+      console.log('Calling Replicate API for image restoration...');
+      
+      const result = await replicate.run(
+        "tencentarc/gfpgan:9283608cc6b7be6b65a8e44983db012355fde4132009bf99d976b2f0896856a3",
+        {
+          input: {
+            img: originalPath,
+            version: "v1.4",
+            scale: 2
+          }
+        }
+      );
+
+      // Download the restored image from Replicate
+      if (typeof result === 'string' && result.startsWith('http')) {
+        console.log('Downloading restored image from:', result);
+        
+        const imageResponse = await fetch(result);
+        if (imageResponse.ok) {
+          const imageBuffer = await imageResponse.arrayBuffer();
+          fs.writeFileSync(processedPath, Buffer.from(imageBuffer));
+          console.log('Restored image saved successfully');
+        } else {
+          throw new Error('Failed to download restored image');
+        }
+      } else {
+        // Fallback: create a copy of original image
+        console.log('Using fallback: copying original image');
+        fs.copyFileSync(originalPath, processedPath);
+      }
+
+      // Update restoration record with success
+      const processingTime = Date.now() - startTime;
+      await prisma.restoration.update({
+        where: { id: restoration.id },
+        data: {
+          status: 'completed',
+          processingTime,
+        },
+      });
+
+      console.log('Restoration completed successfully');
+
+    } catch (aiError) {
+      console.error('AI processing error:', aiError);
+      
+      // Create a fallback processed image
+      fs.copyFileSync(originalPath, processedPath);
+      
+      // Update restoration record with error
+      const processingTime = Date.now() - startTime;
+      await prisma.restoration.update({
+        where: { id: restoration.id },
+        data: {
+          status: 'failed',
+          processingTime,
+        },
+      });
+
+      console.log('Using fallback due to AI processing error');
+    }
 
     const originalImageUrl = `/uploads/${originalFilename}`;
     const processedImageUrl = `/uploads/${processedFilename}`;
