@@ -7,13 +7,31 @@ const withBundleAnalyzer = process.env.ANALYZE === 'true'
 const nextConfig = {
   // Image optimization configuration
   images: {
-    domains: [
-      'replicate.delivery',
-      'pbxt.replicate.delivery',
-      'uploadthing.com',
-      'utfs.io',
-      'lh3.googleusercontent.com',
-      'avatars.githubusercontent.com',
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'replicate.delivery',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pbxt.replicate.delivery',
+      },
+      {
+        protocol: 'https',
+        hostname: 'uploadthing.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'utfs.io',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+      },
     ],
     formats: ['image/webp', 'image/avif'],
   },
