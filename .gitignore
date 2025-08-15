@@ -44,3 +44,6 @@ docker-compose.override.yml
 # Uploads directory (ignore uploaded files but keep API routes)
 /uploads/*
 !/uploads/.gitkeep
+
+/uploads/*
+!/uploads/.gitkeep
