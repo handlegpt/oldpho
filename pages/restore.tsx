@@ -123,11 +123,11 @@ const Restore: NextPage = () => {
   const getSuccessMessage = () => {
     switch (currentLanguage) {
       case 'zh-TW':
-        return `登录链接已发送到 ${email}，请检查您的邮箱（包括垃圾邮件文件夹）`;
+        return '图片恢复成功！';
       case 'ja':
-        return `ログインリンクを ${email} に送信しました。メールボックス（スパムフォルダーも含む）を確認してください`;
+        return '画像の復元が完了しました！';
       default:
-        return `Login link sent to ${email}, please check your email (including spam folder)`;
+        return 'Image restoration completed successfully!';
     }
   };
 
@@ -198,6 +198,7 @@ const Restore: NextPage = () => {
   };
 
   const handleReset = () => {
+    setSelectedFile(null); // 重置选中的文件
     setPreviewUrl(null);
     setResult(null);
     setError(null);
