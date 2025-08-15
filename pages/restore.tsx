@@ -72,7 +72,7 @@ const Restore: NextPage = () => {
       } else {
         console.log('Email sent successfully');
         setIsEmailSent(true);
-        setSuccess(getSuccessMessage());
+        setSuccess(getEmailSuccessMessage());
       }
     } catch (err) {
       console.error('Email sending error:', err);
@@ -120,7 +120,18 @@ const Restore: NextPage = () => {
     }
   };
 
-  const getSuccessMessage = () => {
+  const getEmailSuccessMessage = () => {
+    switch (currentLanguage) {
+      case 'zh-TW':
+        return `登录链接已发送到 ${email}，请检查您的邮箱（包括垃圾邮件文件夹）`;
+      case 'ja':
+        return `ログインリンクを ${email} に送信しました。メールボックス（スパムフォルダーも含む）を確認してください`;
+      default:
+        return `Login link sent to ${email}, please check your email (including spam folder)`;
+    }
+  };
+
+  const getRestoreSuccessMessage = () => {
     switch (currentLanguage) {
       case 'zh-TW':
         return '图片恢复成功！';
@@ -173,7 +184,7 @@ const Restore: NextPage = () => {
       console.log('Progress: 100%');
       setProgress(100);
       setResult(result.processedImageUrl);
-      setSuccess(getSuccessMessage());
+      setSuccess(getRestoreSuccessMessage());
 
     } catch (err) {
       console.error('Restore error:', err);
