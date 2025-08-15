@@ -39,5 +39,8 @@ next-env.d.ts
 
 # Docker
 .env
-uploads/
 docker-compose.override.yml
+
+# Uploads directory (ignore uploaded files but keep API routes)
+/uploads/*
+!/uploads/.gitkeep
