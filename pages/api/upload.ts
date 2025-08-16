@@ -152,24 +152,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Save restoration record to database
     try {
+      console.log('Attempting to save restoration record to database...');
+      console.log('User email:', session.user.email);
+      
       const user = await prisma.user.findUnique({
         where: { email: session.user.email! }
       });
 
+      console.log('User found:', !!user, 'User ID:', user?.id);
+
       if (user) {
-        await prisma.restoration.create({
-          data: {
-            userId: user.id,
-            originalImage: originalImageUrl,
-            restoredImage: processedImageUrl,
-            status: 'completed',
-            processingTime: Date.now() - timestamp
-          }
+        const restorationData = {
+          userId: user.id,
+          originalImage: originalImageUrl,
+          restoredImage: processedImageUrl,
+          status: 'completed',
+          processingTime: Date.now() - timestamp
+        };
+        
+        console.log('Creating restoration record with data:', restorationData);
+        
+        const restoration = await prisma.restoration.create({
+          data: restorationData
         });
-        console.log('Restoration record saved to database');
+        
+        console.log('Restoration record saved successfully:', restoration.id);
+      } else {
+        console.error('User not found in database');
       }
     } catch (dbError) {
       console.error('Database error:', dbError);
+      console.error('Database error details:', {
+        message: dbError instanceof Error ? dbError.message : 'Unknown error',
+        stack: dbError instanceof Error ? dbError.stack : undefined
+      });
       // Don't fail the request if database save fails
     }
 

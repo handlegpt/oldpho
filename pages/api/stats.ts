@@ -27,12 +27,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     });
 
+    console.log('Stats API: User found:', !!user, 'Email:', session.user.email);
+    console.log('Stats API: User restorations count:', user?.restorations?.length);
+
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
     // Calculate statistics
     const totalRestorations = user.restorations.length;
+    console.log('Stats API: Total restorations calculated:', totalRestorations);
     
     // Calculate this month's restorations
     const now = new Date();
