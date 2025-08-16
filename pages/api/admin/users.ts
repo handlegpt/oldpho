@@ -35,7 +35,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           name: true,
           email: true,
           role: true,
-          createdAt: true,
           restorations: {
             select: {
               id: true,

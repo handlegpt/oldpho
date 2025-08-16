@@ -13,7 +13,6 @@ interface User {
   name: string | null;
   email: string | null;
   role: string;
-  createdAt: string;
   restorations: Array<{
     id: string;
     createdAt: string;
@@ -214,7 +213,7 @@ const AdminUsers: NextPage = () => {
                           {user.restorations.length}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(user.createdAt)}
+                          {user.restorations.length > 0 ? formatDate(user.restorations[0].createdAt) : 'No activity'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <button className="text-blue-600 hover:text-blue-900 mr-3">
