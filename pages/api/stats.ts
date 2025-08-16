@@ -87,8 +87,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       usedStorage = Math.min(totalRestorations * 2, totalStorage);
     }
 
-    // Get join date
-    const joinDate = user.createdAt || new Date();
+    // Get join date - use the earliest restoration date or current date
+    const joinDate = user.restorations.length > 0 
+      ? new Date(Math.min(...user.restorations.map(r => r.createdAt.getTime())))
+      : new Date();
 
     const stats = {
       totalRestorations,
