@@ -80,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         })
       );
       
-      usedStorage = storageUsed.reduce((sum, size) => sum + size, 0) / (1024 * 1024); // Convert to MB
+      usedStorage = storageUsed.reduce((sum: number, size: number) => sum + size, 0) / (1024 * 1024); // Convert to MB
     } catch (error) {
       console.error('Error calculating storage usage:', error);
       // Fallback to estimation
