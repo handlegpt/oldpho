@@ -8,6 +8,7 @@ WORKDIR /app
 RUN apk update && apk upgrade && \
     apk add --no-cache \
     dumb-init \
+    curl \
     && rm -rf /var/cache/apk/*
 
 # 创建非root用户
@@ -17,8 +18,8 @@ RUN addgroup -g 1001 -S nodejs && \
 # 复制package文件
 COPY package*.json ./
 
-# 安装依赖
-RUN npm ci --only=production && npm cache clean --force
+# 生成package-lock.json（如果不存在）并安装依赖
+RUN npm install && npm cache clean --force
 
 # 复制源代码
 COPY . .
