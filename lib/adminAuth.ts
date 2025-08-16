@@ -5,8 +5,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 
 export interface AdminUser {
   id: string;
-  email: string;
-  name: string;
+  email: string | null;
+  name: string | null;
   role: string;
 }
 
