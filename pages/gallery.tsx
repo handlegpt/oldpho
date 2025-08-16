@@ -14,12 +14,16 @@ import Image from 'next/image';
 
 interface GalleryItem {
   id: string;
-  imageUrl: string;
+  originalImage: string;
+  restoredImage: string;
   fileName: string;
-  fileSize: number;
-  uploadedAt: string;
-  isProcessed: boolean;
-  restoredImageUrl?: string;
+  originalSize: number;
+  restoredSize: number;
+  totalSize: number;
+  status: string;
+  processingTime?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const Gallery: NextPage = () => {
@@ -40,40 +44,27 @@ const Gallery: NextPage = () => {
   }, [status, router]);
 
   useEffect(() => {
-    // 模拟加载照片库
-    setTimeout(() => {
-      const mockGallery: GalleryItem[] = [
-        {
-          id: '1',
-          imageUrl: '/sample-original-1.jpg',
-          fileName: 'family_photo_1920.jpg',
-          fileSize: 2048576, // 2MB
-          uploadedAt: '2024-01-15T10:30:00Z',
-          isProcessed: true,
-          restoredImageUrl: '/sample-restored-1.jpg'
-        },
-        {
-          id: '2',
-          imageUrl: '/sample-original-2.jpg',
-          fileName: 'grandparents_photo.jpg',
-          fileSize: 1536000, // 1.5MB
-          uploadedAt: '2024-01-14T15:45:00Z',
-          isProcessed: true,
-          restoredImageUrl: '/sample-restored-2.jpg'
-        },
-        {
-          id: '3',
-          imageUrl: '/sample-original-3.jpg',
-          fileName: 'old_portrait.jpg',
-          fileSize: 3072000, // 3MB
-          uploadedAt: '2024-01-13T09:20:00Z',
-          isProcessed: false
+    const fetchGallery = async () => {
+      if (status === 'authenticated' && session?.user) {
+        try {
+          setLoading(true);
+          const response = await fetch('/api/gallery');
+          if (response.ok) {
+            const data = await response.json();
+            setGalleryItems(data);
+          } else {
+            console.error('Failed to fetch gallery:', response.statusText);
+          }
+        } catch (error) {
+          console.error('Error fetching gallery:', error);
+        } finally {
+          setLoading(false);
         }
-      ];
-      setGalleryItems(mockGallery);
-      setLoading(false);
-    }, 1000);
-  }, []);
+      }
+    };
+
+    fetchGallery();
+  }, [status, session]);
 
   const handleLanguageChange = (language: Language) => {
     // Language change is now handled by the global context
@@ -96,9 +87,34 @@ const Gallery: NextPage = () => {
     }
   };
 
-  const handleDeleteSelected = () => {
-    setGalleryItems(prev => prev.filter(item => !selectedItems.includes(item.id)));
-    setSelectedItems([]);
+  const handleDeleteSelected = async () => {
+    if (selectedItems.length === 0) return;
+
+    try {
+      // Delete each selected item
+      await Promise.all(
+        selectedItems.map(async (itemId) => {
+          const response = await fetch('/api/gallery/delete', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ restorationId: itemId }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to delete item ${itemId}`);
+          }
+        })
+      );
+
+      // Remove deleted items from state
+      setGalleryItems(prev => prev.filter(item => !selectedItems.includes(item.id)));
+      setSelectedItems([]);
+    } catch (error) {
+      console.error('Error deleting items:', error);
+      alert('Failed to delete some items. Please try again.');
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -273,16 +289,36 @@ const Gallery: NextPage = () => {
                       className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                     />
 
-                    {/* Image */}
-                    <div className={`relative ${viewMode === 'list' ? 'w-20 h-20' : 'aspect-square'} bg-gray-100 rounded-lg overflow-hidden`}>
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.fileName}
-                        fill
-                        className="object-cover"
-                      />
-                      {item.isProcessed && (
-                        <div className="absolute top-1 right-1 bg-green-500 text-white text-xs px-1 py-0.5 rounded">
+                    {/* Image Comparison */}
+                    <div className={`relative ${viewMode === 'list' ? 'w-32 h-20' : 'aspect-square'} bg-gray-100 rounded-lg overflow-hidden`}>
+                      <div className="relative w-full h-full">
+                        {/* Original Image */}
+                        <div className="absolute inset-0 w-1/2 border-r-2 border-white">
+                          <Image
+                            src={item.originalImage}
+                            alt={`Original ${item.fileName}`}
+                            fill
+                            className="object-cover"
+                          />
+                          <div className="absolute top-1 left-1 bg-red-500 text-white text-xs px-1 py-0.5 rounded">
+                            Before
+                          </div>
+                        </div>
+                        {/* Restored Image */}
+                        <div className="absolute right-0 top-0 w-1/2 h-full">
+                          <Image
+                            src={item.restoredImage}
+                            alt={`Restored ${item.fileName}`}
+                            fill
+                            className="object-cover"
+                          />
+                          <div className="absolute top-1 right-1 bg-green-500 text-white text-xs px-1 py-0.5 rounded">
+                            After
+                          </div>
+                        </div>
+                      </div>
+                      {item.status === 'completed' && (
+                        <div className="absolute bottom-1 left-1 bg-green-500 text-white text-xs px-1 py-0.5 rounded">
                           {getGalleryText('processed')}
                         </div>
                       )}
@@ -291,30 +327,40 @@ const Gallery: NextPage = () => {
                     {/* Info */}
                     <div className={viewMode === 'list' ? 'flex-1' : 'space-y-2'}>
                       <p className="font-medium text-sm truncate">{item.fileName}</p>
-                      <p className="text-xs text-gray-500">{formatFileSize(item.fileSize)}</p>
                       <p className="text-xs text-gray-500">
-                        {new Date(item.uploadedAt).toLocaleDateString()}
+                        Original: {formatFileSize(item.originalSize)} | Restored: {formatFileSize(item.restoredSize)}
                       </p>
-                      {!item.isProcessed && (
+                      <p className="text-xs text-gray-500">
+                        Total: {formatFileSize(item.totalSize)}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(item.createdAt).toLocaleDateString()}
+                      </p>
+                      {item.processingTime && (
+                        <p className="text-xs text-gray-500">
+                          Processed in: {item.processingTime}ms
+                        </p>
+                      )}
+                      {item.status !== 'completed' && (
                         <span className="inline-block px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          {getGalleryText('unprocessed')}
+                          {item.status}
                         </span>
                       )}
                     </div>
 
                     {/* Actions */}
                     <div className={viewMode === 'list' ? 'flex space-x-2' : 'flex space-x-2 mt-4'}>
-                      {!item.isProcessed && (
-                        <button className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-700 transition-colors">
-                          {getGalleryText('restore')}
-                        </button>
-                      )}
-                      {item.isProcessed && (
-                        <button className="bg-green-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-green-700 transition-colors">
-                          {getGalleryText('download')}
-                        </button>
-                      )}
-                      <button className="bg-red-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-red-700 transition-colors">
+                      <a 
+                        href={item.restoredImage} 
+                        download
+                        className="bg-green-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-green-700 transition-colors"
+                      >
+                        {getGalleryText('download')}
+                      </a>
+                      <button 
+                        onClick={() => handleDeleteSelected()}
+                        className="bg-red-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-red-700 transition-colors"
+                      >
                         {getGalleryText('delete')}
                       </button>
                     </div>

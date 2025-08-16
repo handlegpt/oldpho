@@ -148,10 +148,10 @@ const Dashboard: NextPage = () => {
         'zh-TW': '查看价格',
         'ja': '料金を見る'
       },
-      accountSettings: {
-        'en': 'Account Settings',
-        'zh-TW': '账户设置',
-        'ja': 'アカウント設定'
+      viewGallery: {
+        'en': 'View Gallery',
+        'zh-TW': '查看图库',
+        'ja': 'ギャラリーを見る'
       },
       helpSupport: {
         'en': 'Help & Support',
@@ -316,8 +316,8 @@ const Dashboard: NextPage = () => {
                     <Link href="/pricing" className="block w-full p-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-center font-medium">
                       {getDashboardText('upgrade')}
                     </Link>
-                    <Link href="/account" className="block w-full p-4 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-center font-medium">
-                      {getDashboardText('accountSettings')}
+                    <Link href="/gallery" className="block w-full p-4 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-center font-medium">
+                      {getDashboardText('viewGallery')}
                     </Link>
                     <Link href="/support" className="block w-full p-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-center font-medium">
                       {getDashboardText('helpSupport')}

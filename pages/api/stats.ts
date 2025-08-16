@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from './auth/[...nextauth]';
 import prisma from '../../lib/prismadb';
 import { Restoration } from '@prisma/client';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -47,9 +49,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ? Math.max(0, 5 - thisMonthRestorations)
       : 999; // Unlimited for paid plans
 
-    // Calculate storage usage (simplified - count total file size)
+    // Calculate storage usage (precise - actual file sizes)
     const totalStorage = planType === 'free' ? 100 : 1000; // MB
-    const usedStorage = Math.min(totalRestorations * 2, totalStorage); // Estimate 2MB per image
+    
+    // Calculate actual storage used by summing file sizes
+    let usedStorage = 0;
+    try {
+      const storageUsed = await Promise.all(
+        user.restorations.map(async (restoration) => {
+          try {
+            const originalPath = path.join(process.cwd(), 'public', restoration.originalImage);
+            const restoredPath = path.join(process.cwd(), 'public', restoration.restoredImage);
+            
+            let originalSize = 0;
+            let restoredSize = 0;
+            
+            if (fs.existsSync(originalPath)) {
+              originalSize = fs.statSync(originalPath).size;
+            }
+            
+            if (fs.existsSync(restoredPath)) {
+              restoredSize = fs.statSync(restoredPath).size;
+            }
+            
+            return originalSize + restoredSize;
+          } catch (error) {
+            console.error('Error calculating file size for restoration:', restoration.id, error);
+            return 0;
+          }
+        })
+      );
+      
+      usedStorage = storageUsed.reduce((sum, size) => sum + size, 0) / (1024 * 1024); // Convert to MB
+    } catch (error) {
+      console.error('Error calculating storage usage:', error);
+      // Fallback to estimation
+      usedStorage = Math.min(totalRestorations * 2, totalStorage);
+    }
 
     // Get join date
     const joinDate = user.createdAt || new Date();
