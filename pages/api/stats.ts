@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let usedStorage = 0;
     try {
       const storageUsed = await Promise.all(
-        user.restorations.map(async (restoration) => {
+        user.restorations.map(async (restoration: any) => {
           try {
             const originalPath = path.join(process.cwd(), 'public', restoration.originalImage);
             const restoredPath = path.join(process.cwd(), 'public', restoration.restoredImage);

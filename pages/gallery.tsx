@@ -72,9 +72,9 @@ const Gallery: NextPage = () => {
   };
 
   const handleSelectItem = (itemId: string) => {
-    setSelectedItems(prev => 
+    setSelectedItems((prev: string[]) => 
       prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
+        ? prev.filter((id: string) => id !== itemId)
         : [...prev, itemId]
     );
   };
@@ -83,7 +83,7 @@ const Gallery: NextPage = () => {
     if (selectedItems.length === galleryItems.length) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(galleryItems.map(item => item.id));
+      setSelectedItems(galleryItems.map((item: GalleryItem) => item.id));
     }
   };
 
@@ -93,7 +93,7 @@ const Gallery: NextPage = () => {
     try {
       // Delete each selected item
       await Promise.all(
-        selectedItems.map(async (itemId) => {
+        selectedItems.map(async (itemId: string) => {
           const response = await fetch('/api/gallery/delete', {
             method: 'DELETE',
             headers: {
@@ -109,7 +109,7 @@ const Gallery: NextPage = () => {
       );
 
       // Remove deleted items from state
-      setGalleryItems(prev => prev.filter(item => !selectedItems.includes(item.id)));
+      setGalleryItems((prev: GalleryItem[]) => prev.filter((item: GalleryItem) => !selectedItems.includes(item.id)));
       setSelectedItems([]);
     } catch (error) {
       console.error('Error deleting items:', error);

@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Process restoration records to include file information
     const galleryItems = await Promise.all(
-      user.restorations.map(async (restoration) => {
+      user.restorations.map(async (restoration: any) => {
         try {
           // Get file sizes
           const originalPath = path.join(process.cwd(), 'public', restoration.originalImage);
