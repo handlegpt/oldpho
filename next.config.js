@@ -1,175 +1,115 @@
-// Conditionally use bundle analyzer
-const withBundleAnalyzer = process.env.ANALYZE === 'true' 
-  ? require('@next/bundle-analyzer')({ enabled: true })
-  : (config) => config;
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Image optimization configuration
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'replicate.delivery',
-      },
-      {
-        protocol: 'https',
-        hostname: 'pbxt.replicate.delivery',
-      },
-      {
-        protocol: 'https',
-        hostname: 'uploadthing.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'utfs.io',
-      },
-      {
-        protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'avatars.githubusercontent.com',
-      },
-    ],
-    formats: ['image/webp', 'image/avif'],
-  },
-
-  // Experimental features
-  experimental: {
-    scrollRestoration: true,
-  },
-
-  // Webpack configuration optimization
-  webpack: (config, { dev, isServer }) => {
-    // Production environment optimization
-    if (!dev && !isServer) {
-      // Separate vendor bundles
-      config.optimization.splitChunks = {
-        chunks: 'all',
-        cacheGroups: {
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
-          },
-          common: {
-            name: 'common',
-            minChunks: 2,
-            chunks: 'all',
-            enforce: true,
-          },
-        },
-      };
-
-      // Compression configuration
-      config.optimization.minimize = true;
-    }
-
-    // Handle TensorFlow.js
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      fs: false,
-      net: false,
-      tls: false,
-    };
-
-    return config;
-  },
-
-  // Compression configuration
-  compress: true,
-
-  // Output configuration
-  output: 'standalone',
-
-  // Static file serving configuration - serve uploads directory directly
-  async rewrites() {
-    return [
-      {
-        source: '/uploads/:path*',
-        destination: '/api/images/:path*',
-      },
-    ];
-  },
-
-  // Redirect configuration
-  async redirects() {
-    return [
-      {
-        source: '/home',
-        destination: '/',
-        permanent: true,
-      },
-    ];
-  },
-
-  // Serve static files from public/uploads directory
+  reactStrictMode: true,
+  swcMinify: true,
+  
+  // 安全配置
   async headers() {
     return [
       {
         source: '/(.*)',
         headers: [
+          // 内容安全策略
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://plausible.io",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: blob: https:",
+              "media-src 'self'",
+              "connect-src 'self' https://api.replicate.com https://plausible.io",
+              "frame-src 'none'",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+              "upgrade-insecure-requests"
+            ].join('; ')
+          },
+          // X-Frame-Options
           {
             key: 'X-Frame-Options',
-            value: 'DENY',
+            value: 'DENY'
           },
+          // X-Content-Type-Options
           {
             key: 'X-Content-Type-Options',
-            value: 'nosniff',
+            value: 'nosniff'
           },
+          // X-XSS-Protection
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          // Referrer-Policy
           {
             key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
+            value: 'strict-origin-when-cross-origin'
           },
+          // Permissions-Policy
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            value: 'camera=(), microphone=(), geolocation=(), payment=()'
           },
-        ],
-      },
-      {
-        source: '/api/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
-          },
-          {
-            key: 'Pragma',
-            value: 'no-cache',
-          },
-          {
-            key: 'Expires',
-            value: '0',
-          },
-        ],
-      },
-      {
-        source: '/uploads/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
+          // Strict-Transport-Security (仅在生产环境)
+          ...(process.env.NODE_ENV === 'production' ? [{
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload'
+          }] : [])
+        ]
+      }
     ];
   },
 
-  // Environment variables
+  // 重写规则
+  async rewrites() {
+    return [
+      {
+        source: '/uploads/:path*',
+        destination: '/api/uploads/:path*'
+      }
+    ];
+  },
+
+  // 环境变量验证
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
 
-  // Page optimization
-  onDemandEntries: {
-    // Time pages stay in memory (milliseconds)
-    maxInactiveAge: 25 * 1000,
-    // Number of pages to keep simultaneously
-    pagesBufferLength: 2,
+  // 图片优化配置
+  images: {
+    domains: ['localhost'],
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 60,
+  },
+
+  // 实验性功能
+  experimental: {
+    // 启用App Router的安全功能
+    serverComponentsExternalPackages: ['@prisma/client'],
+  },
+
+  // 构建时优化
+  compiler: {
+    // 移除console.log在生产环境
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+
+  // 输出配置
+  output: 'standalone',
+
+  // 重定向规则
+  async redirects() {
+    return [
+      {
+        source: '/admin',
+        destination: '/admin/',
+        permanent: true,
+      },
+    ];
   },
 };
 
-module.exports = withBundleAnalyzer(nextConfig);
+module.exports = nextConfig;

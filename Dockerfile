@@ -1,66 +1,50 @@
-# 多阶段构建 - 构建阶段
-FROM node:18-alpine AS builder
+# 使用官方Node.js运行时作为基础镜像
+FROM node:18-alpine AS base
 
-RUN apk add --no-cache openssl python3 make g++
+# 设置工作目录
 WORKDIR /app
 
-RUN npm config set registry https://registry.npmjs.org/
-RUN npm config set fetch-timeout 300000
-RUN npm config set fetch-retry-mintimeout 20000
-RUN npm config set fetch-retry-maxtimeout 120000
+# 安装系统依赖和安全更新
+RUN apk update && apk upgrade && \
+    apk add --no-cache \
+    dumb-init \
+    && rm -rf /var/cache/apk/*
 
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_SKIP_DOWNLOAD=true
-ENV NODE_ENV=production
+# 创建非root用户
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
 
+# 复制package文件
 COPY package*.json ./
-RUN npm ci --prefer-offline --no-audit --progress=false || npm install --prefer-offline --no-audit --progress=false
 
+# 安装依赖
+RUN npm ci --only=production && npm cache clean --force
+
+# 复制源代码
 COPY . .
-RUN npx prisma generate
 
-# 创建uploads目录
-RUN mkdir -p public/uploads && chmod 755 public/uploads
-
-RUN npm run build
-
-# 生产阶段
-FROM node:18-alpine AS runner
-
-RUN apk add --no-cache openssl curl
-WORKDIR /app
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-RUN npm config set registry https://registry.npmjs.org/
-
+# 设置环境变量
 ENV NODE_ENV=production
-ENV PORT=3001
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY package*.json ./
-RUN npm ci --prefer-offline --no-audit --progress=false || npm install --only=production --prefer-offline --no-audit --progress=false
+# 创建必要的目录并设置权限
+RUN mkdir -p /app/public/uploads && \
+    chown -R nextjs:nodejs /app && \
+    chmod -R 755 /app && \
+    chmod 750 /app/public/uploads
 
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-
-# 确保uploads目录存在并设置正确权限
-RUN mkdir -p public/uploads && \
-    chown -R nextjs:nodejs public/uploads && \
-    chmod 777 public/uploads
-
-# 设置整个应用目录的权限
-RUN chown -R nextjs:nodejs /app
+# 切换到非root用户
 USER nextjs
 
-EXPOSE 3001
+# 暴露端口
+EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
-  CMD curl -f http://localhost:3001/api/health || exit 1
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
 
-CMD ["node", "server.js"] 
+# 使用dumb-init作为PID 1
+ENTRYPOINT ["dumb-init", "--"]
+
+# 启动命令
+CMD ["npm", "start"] 

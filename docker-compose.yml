@@ -1,59 +1,169 @@
 version: '3.8'
 
 services:
-  # 主应用服务
-  app:
-    build: .
-    ports:
-      - "3001:3001"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=${DATABASE_URL}
-      - SHADOW_DATABASE_URL=${SHADOW_DATABASE_URL}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3001}
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-secret-key-here}
-      - REPLICATE_API_KEY=${REPLICATE_API_KEY}
-      - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL:-redis://redis:6379}
-      - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - EMAIL_SERVER_HOST=${EMAIL_SERVER_HOST}
-      - EMAIL_SERVER_PORT=${EMAIL_SERVER_PORT:-587}
-      - EMAIL_SERVER_USER=${EMAIL_SERVER_USER}
-      - EMAIL_SERVER_PASS=${EMAIL_SERVER_PASS}
-      - EMAIL_FROM=${EMAIL_FROM}
-      - NEXT_PUBLIC_UPLOAD_API_KEY=${NEXT_PUBLIC_UPLOAD_API_KEY}
-      - NEXT_PUBLIC_PLAUSIBLE_DOMAIN=${NEXT_PUBLIC_PLAUSIBLE_DOMAIN:-oldpho.com}
-      - TRUSTED_PROXY=true
-      - HOST=0.0.0.0
-      - PORT=3001
-    depends_on:
-      - db
-      - redis
-    restart: unless-stopped
-
-  # PostgreSQL 数据库
+  # 数据库服务
   db:
     image: postgres:15-alpine
+    container_name: shinai-db
+    restart: unless-stopped
     environment:
-      - POSTGRES_DB=oldpho
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-oldpho_password_2024}
+      POSTGRES_DB: shinai
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secure_password_123}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
     ports:
       - "5432:5432"
-    restart: unless-stopped
+    networks:
+      - shinai-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d shinai"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
 
-  # Redis 缓存（用于速率限制）
+  # Redis缓存服务
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    container_name: shinai-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-secure_redis_123}
     volumes:
       - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - shinai-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    tmpfs:
+      - /tmp
+
+  # 主应用服务
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shinai-app
     restart: unless-stopped
+    environment:
+      # 数据库配置
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-secure_password_123}@db:5432/shinai
+      
+      # NextAuth配置
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://shinai.com}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      
+      # 邮件服务配置
+      EMAIL_SERVER_HOST: ${EMAIL_SERVER_HOST}
+      EMAIL_SERVER_PORT: ${EMAIL_SERVER_PORT:-587}
+      EMAIL_SERVER_USER: ${EMAIL_SERVER_USER}
+      EMAIL_SERVER_PASSWORD: ${EMAIL_SERVER_PASSWORD}
+      EMAIL_FROM: ${EMAIL_FROM}
+      
+      # Google OAuth配置
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      
+      # Replicate API配置
+      REPLICATE_API_TOKEN: ${REPLICATE_API_TOKEN}
+      
+      # Plausible Analytics
+      PLAUSIBLE_DOMAIN: ${PLAUSIBLE_DOMAIN:-shinai.com}
+      
+      # 应用配置
+      NODE_ENV: production
+      PORT: 3000
+      
+      # 安全配置
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://shinai.com,https://www.shinai.com}
+      
+      # Redis配置
+      REDIS_URL: redis://:${REDIS_PASSWORD:-secure_redis_123}@redis:6379
+    volumes:
+      - app_uploads:/app/public/uploads
+      - app_logs:/app/logs
+    ports:
+      - "3000:3000"
+    networks:
+      - shinai-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    tmpfs:
+      - /tmp
+      - /app/.next/cache
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+
+  # Nginx反向代理 (可选)
+  nginx:
+    image: nginx:alpine
+    container_name: shinai-nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - shinai-network
+    depends_on:
+      - app
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/log/nginx
 
 volumes:
   postgres_data:
-  redis_data: 
+    driver: local
+  redis_data:
+    driver: local
+  app_uploads:
+    driver: local
+  app_logs:
+    driver: local
+
+networks:
+  shinai-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 
