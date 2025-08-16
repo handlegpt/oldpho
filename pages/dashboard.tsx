@@ -27,6 +27,7 @@ const Dashboard: NextPage = () => {
   });
 
   const [loading, setLoading] = useState(true);
+  const [permissions, setPermissions] = useState<any>(null);
 
   const [recentActivity, setRecentActivity] = useState([
     {
@@ -53,28 +54,39 @@ const Dashboard: NextPage = () => {
     }
   }, [status, router]);
 
-  // Fetch user stats when session is available
+  // Fetch user stats and permissions when session is available
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       if (status === 'authenticated' && session?.user) {
         try {
           setLoading(true);
-          const response = await fetch('/api/stats');
-          if (response.ok) {
-            const stats = await response.json();
+          
+          // Fetch stats
+          const statsResponse = await fetch('/api/stats');
+          if (statsResponse.ok) {
+            const stats = await statsResponse.json();
             setUserStats(stats);
           } else {
-            console.error('Failed to fetch stats:', response.statusText);
+            console.error('Failed to fetch stats:', statsResponse.statusText);
+          }
+
+          // Fetch permissions
+          const permissionsResponse = await fetch('/api/user/permissions');
+          if (permissionsResponse.ok) {
+            const permissionsData = await permissionsResponse.json();
+            setPermissions(permissionsData);
+          } else {
+            console.error('Failed to fetch permissions:', permissionsResponse.statusText);
           }
         } catch (error) {
-          console.error('Error fetching stats:', error);
+          console.error('Error fetching data:', error);
         } finally {
           setLoading(false);
         }
       }
     };
 
-    fetchStats();
+    fetchData();
   }, [status, session]);
 
   if (status === 'loading') {

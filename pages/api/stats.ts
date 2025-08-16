@@ -5,6 +5,7 @@ import prisma from '../../lib/prismadb';
 import { Restoration } from '@prisma/client';
 import * as fs from 'fs';
 import * as path from 'path';
+import { PLAN_LIMITS } from '../../lib/permissions';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -45,16 +46,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       (restoration: Restoration) => restoration.createdAt >= startOfMonth
     ).length;
 
-    // Get plan type
+    // Get plan type and limits
     const planType = user.subscription?.planId || 'free';
+    const planLimits = PLAN_LIMITS[planType] || PLAN_LIMITS.free;
     
-    // Calculate remaining generations (free plan: 5 per month)
-    const remainingGenerations = planType === 'free' 
-      ? Math.max(0, 5 - thisMonthRestorations)
-      : 999; // Unlimited for paid plans
+    // Calculate remaining generations based on plan limits
+    const remainingGenerations = Math.max(0, planLimits.monthlyRestorations - thisMonthRestorations);
 
     // Calculate storage usage (precise - actual file sizes)
-    const totalStorage = planType === 'free' ? 100 : 1000; // MB
+    const totalStorage = planLimits.storageLimit; // MB
     
     // Calculate actual storage used by summing file sizes
     let usedStorage = 0;

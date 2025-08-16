@@ -6,6 +6,7 @@ import * as path from 'path';
 import formidable from 'formidable';
 import { replicate } from '../../lib/replicate';
 import prisma from '../../lib/prismadb';
+import { checkRestorationLimit, checkFileSizeLimit, getUserPlan } from '../../lib/permissions';
 
 export const config = {
   api: {
@@ -29,6 +30,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     console.log('User authenticated:', session.user.email);
+
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email! }
+    });
+
+    if (!user) {
+      console.log('User not found in database');
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    console.log('User found:', user.id, 'Email:', user.email);
+
+    // Check restoration limits
+    const limitCheck = await checkRestorationLimit(user.id);
+    if (!limitCheck.allowed) {
+      console.log('Restoration limit exceeded:', limitCheck.error);
+      return res.status(429).json({ 
+        error: 'Restoration limit exceeded',
+        message: limitCheck.error,
+        remaining: limitCheck.remaining
+      });
+    }
+
+    console.log('Restoration limit check passed. Remaining:', limitCheck.remaining);
 
     // Ensure uploads directory exists in public folder
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
@@ -74,6 +100,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     console.log('File uploaded:', uploadedFile);
+
+    // Check file size limits
+    const fileSizeCheck = await checkFileSizeLimit(user.id, uploadedFile.size);
+    if (!fileSizeCheck.allowed) {
+      console.log('File size limit exceeded:', fileSizeCheck.error);
+      return res.status(413).json({ 
+        error: 'File too large',
+        message: fileSizeCheck.error
+      });
+    }
+
+    console.log('File size check passed');
 
     // Generate unique filenames
     const timestamp = Date.now();
