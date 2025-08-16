@@ -187,7 +187,7 @@ const Gallery: NextPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <Head>
-        <title>Gallery - OldPho</title>
+        <title>Gallery - Shin AI</title>
         <meta name="description" content="Manage your photo gallery" />
       </Head>
       

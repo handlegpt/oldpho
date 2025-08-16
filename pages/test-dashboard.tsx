@@ -17,7 +17,7 @@ const TestDashboard: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Test Dashboard - OldPho</title>
+        <title>Test Dashboard - Shin AI</title>
       </Head>
       
       <div className="min-h-screen bg-gray-50 p-8">

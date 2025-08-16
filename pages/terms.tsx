@@ -16,7 +16,7 @@ const Terms: NextPage = () => {
           sections: [
             {
               title: '1. 服务说明',
-              content: 'OldPho提供基于AI技术的照片修复服务。我们致力于通过先进的人工智能技术帮助用户恢复和增强老照片。'
+              content: 'Shin AI提供基于AI技术的照片修复服务。我们致力于通过先进的人工智能技术帮助用户恢复和增强老照片。'
             },
             {
               title: '2. 用户责任',
@@ -40,7 +40,7 @@ const Terms: NextPage = () => {
             },
             {
               title: '7. 联系方式',
-              content: '如有任何问题或建议，请通过网站联系表单或发送邮件至support@oldpho.com联系我们。'
+              content: '如有任何问题或建议，请通过网站联系表单或发送邮件至support@shinai.com联系我们。'
             }
           ]
         };
@@ -51,7 +51,7 @@ const Terms: NextPage = () => {
           sections: [
             {
               title: '1. サービス説明',
-              content: 'OldPhoはAI技術を活用した写真復元サービスを提供します。先進的な人工知能技術により、古い写真の復元と強化を支援します。'
+              content: 'Shin AIはAI技術を活用した写真復元サービスを提供します。先進的な人工知能技術により、古い写真の復元と強化を支援します。'
             },
             {
               title: '2. ユーザーの責任',
@@ -75,7 +75,7 @@ const Terms: NextPage = () => {
             },
             {
               title: '7. お問い合わせ',
-              content: 'ご質問やご提案がございましたら、ウェブサイトの問い合わせフォームまたはsupport@oldpho.comまでメールでお問い合わせください。'
+              content: 'ご質問やご提案がございましたら、ウェブサイトの問い合わせフォームまたはsupport@shinai.comまでメールでお問い合わせください。'
             }
           ]
         };
@@ -86,7 +86,7 @@ const Terms: NextPage = () => {
           sections: [
             {
               title: '1. Service Description',
-              content: 'OldPho provides photo restoration services based on AI technology. We are committed to helping users restore and enhance old photos through advanced artificial intelligence technology.'
+              content: 'Shin AI provides photo restoration services based on AI technology. We are committed to helping users restore and enhance old photos through advanced artificial intelligence technology.'
             },
             {
               title: '2. User Responsibilities',
@@ -110,7 +110,7 @@ const Terms: NextPage = () => {
             },
             {
               title: '7. Contact Information',
-              content: 'If you have any questions or suggestions, please contact us through the website contact form or send an email to support@oldpho.com.'
+              content: 'If you have any questions or suggestions, please contact us through the website contact form or send an email to support@shinai.com.'
             }
           ]
         };
@@ -122,8 +122,8 @@ const Terms: NextPage = () => {
   return (
     <>
       <Head>
-        <title>{content.title} | OldPho</title>
-        <meta name="description" content={currentLanguage === 'zh-TW' ? 'OldPho服务条款 - 了解我们的服务规则和使用条款' : currentLanguage === 'ja' ? 'OldPho利用規約 - サービスルールと利用条件について' : 'OldPho Terms of Service - Learn about our service rules and terms of use'} />
+        <title>{content.title} | Shin AI</title>
+        <meta name="description" content={currentLanguage === 'zh-TW' ? 'Shin AI服务条款 - 了解我们的服务规则和使用条款' : currentLanguage === 'ja' ? 'Shin AI利用規約 - サービスルールと利用条件について' : 'Shin AI Terms of Service - Learn about our service rules and terms of use'} />
       </Head>
       
       <Header photo={undefined} />

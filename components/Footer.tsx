@@ -45,7 +45,7 @@ export default function Footer() {
               <div className='w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg'>
                 <span className='text-white font-bold text-lg'>O</span>
               </div>
-              <span className='text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent'>OldPho</span>
+                                 <span className='text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent'>Shin AI</span>
             </div>
             <p className='text-gray-300 mb-6 leading-relaxed text-lg'>
               {currentLanguage === 'zh-TW' 
@@ -56,9 +56,9 @@ export default function Footer() {
               }
             </p>
             <div className='flex items-center space-x-4'>
-              <p className='text-sm text-gray-400'>
-                {t.poweredBy} <span className='font-semibold text-blue-400'>OldPho</span>
-              </p>
+                                 <p className='text-sm text-gray-400'>
+                     {t.poweredBy} <span className='font-semibold text-blue-400'>Shin AI</span>
+                   </p>
               <div className='flex space-x-3'>
                 <a href="#" className='text-gray-400 hover:text-blue-400 transition-colors'>
                   <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 24 24'>
@@ -130,9 +130,9 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className='border-t border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center'>
-          <p className='text-sm text-gray-400 mb-4 md:mb-0'>
-            © 2024 OldPho. {currentLanguage === 'zh-TW' ? '保留所有权利。' : currentLanguage === 'ja' ? '全著作権所有。' : 'All rights reserved.'}
-          </p>
+                         <p className='text-sm text-gray-400 mb-4 md:mb-0'>
+                 © 2024 Shin AI. {currentLanguage === 'zh-TW' ? '保留所有权利。' : currentLanguage === 'ja' ? '全著作権所有。' : 'All rights reserved.'}
+               </p>
           <div className='flex space-x-6'>
             <Link href='/privacy' className='text-sm text-gray-400 hover:text-blue-400 transition-colors duration-200'>
               {t.privacy}

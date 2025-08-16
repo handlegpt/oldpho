@@ -218,8 +218,8 @@ const Dashboard: NextPage = () => {
   return (
     <>
       <Head>
-        <title>{getDashboardText('title')} - OldPho</title>
-        <meta name="description" content="User dashboard for OldPho" />
+        <title>{getDashboardText('title')} - Shin AI</title>
+        <meta name="description" content="User dashboard for Shin AI" />
       </Head>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <Header photo={undefined} />

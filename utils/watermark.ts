@@ -25,7 +25,7 @@ export const addWatermark = async (imageUrl: string): Promise<string> => {
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
       ctx.lineWidth = 2;
       
-      const text = 'OldPho';
+      const text = 'Shin AI';
       const x = img.width - 120;
       const y = img.height - 20;
       

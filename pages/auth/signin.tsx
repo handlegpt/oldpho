@@ -41,8 +41,8 @@ export default function SignIn({ providers }: SignInProps) {
   return (
     <>
       <Head>
-        <title>Sign In - OldPho</title>
-        <meta name="description" content="Sign in to OldPho" />
+        <title>Sign In - Shin AI</title>
+        <meta name="description" content="Sign in to Shin AI" />
       </Head>
       
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

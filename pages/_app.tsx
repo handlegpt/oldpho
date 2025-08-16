@@ -81,10 +81,10 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
     <ErrorBoundary>
       <Head>
         {/* PWA related meta tags */}
-        <meta name="application-name" content="OldPho" />
+        <meta name="application-name" content="Shin AI" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="OldPho" />
+        <meta name="apple-mobile-web-app-title" content="Shin AI" />
         <meta name="description" content="AI-powered photo restoration tool" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
@@ -103,7 +103,7 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
         <link rel="preconnect" href="https://replicate.delivery" />
       </Head>
       <SessionProvider session={session}>
-        <PlausibleProvider domain='oldpho.com'>
+        <PlausibleProvider domain='shinai.com'>
           <LanguageProvider>
             <Component {...pageProps} />
           </LanguageProvider>

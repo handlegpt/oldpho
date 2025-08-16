@@ -1,4 +1,4 @@
-const CACHE_NAME = 'oldpho-v1.0.1';
+const CACHE_NAME = 'shinai-v1.0.1';
 const STATIC_CACHE = 'static-v1.1';
 const DYNAMIC_CACHE = 'dynamic-v1.1';
 
@@ -134,7 +134,7 @@ async function doBackgroundSync() {
 // 推送通知处理
 self.addEventListener('push', (event) => {
   const options = {
-    body: event.data ? event.data.text() : 'OldPho 有新消息',
+            body: event.data ? event.data.text() : 'Shin AI 有新消息',
     icon: '/favicon.ico',
     badge: '/favicon.ico',
     vibrate: [100, 50, 100],
@@ -157,7 +157,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification('OldPho', options)
+          self.registration.showNotification('Shin AI', options)
   );
 });
 

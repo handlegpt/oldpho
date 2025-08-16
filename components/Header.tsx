@@ -64,9 +64,9 @@ export default function Header({ photo }: HeaderProps) {
           </div>
           <div className='absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-full border-2 border-white'></div>
         </div>
-        <h1 className='text-lg sm:text-3xl font-bold ml-2 tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent'>
-          OldPho
-        </h1>
+                       <h1 className='text-lg sm:text-3xl font-bold ml-2 tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent'>
+                 Shin AI
+               </h1>
       </Link>
       
       <div className='flex items-center space-x-3 sm:space-x-6'>

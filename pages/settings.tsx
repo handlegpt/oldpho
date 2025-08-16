@@ -96,7 +96,7 @@ const Settings: NextPage = () => {
     <>
       <Head>
         <title>
-          {currentLanguage === 'zh-TW' ? '设置 - OldPho' : currentLanguage === 'ja' ? '設定 - OldPho' : 'Settings - OldPho'}
+          {currentLanguage === 'zh-TW' ? '设置 - Shin AI' : currentLanguage === 'ja' ? '設定 - Shin AI' : 'Settings - Shin AI'}
         </title>
         <meta name="description" content="Manage your account settings and preferences" />
       </Head>

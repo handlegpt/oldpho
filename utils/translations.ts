@@ -98,7 +98,7 @@ export interface Translations {
 export const translations: Record<Language, Translations> = {
   'en': {
     seo: {
-      title: 'OldPho - AI Photo Restoration | Restore Old Photos with AI',
+      title: 'Shin AI - AI Photo Restoration | Restore Old Photos with AI',
       description: 'Transform old, blurry, and damaged photos into crystal-clear memories using advanced AI technology. Free photo restoration service.',
       keywords: 'AI photo restoration, old photo repair, blurry photo fix, photo enhancement, image restoration, AI photo repair'
     },
@@ -117,7 +117,7 @@ export const translations: Record<Language, Translations> = {
       support: 'Customer Support'
     },
     features: {
-      title: 'Why Choose OldPho?',
+      title: 'Why Choose Shin AI?',
       subtitle: 'Advanced AI technology combined with user-friendly interface for the best photo restoration experience.',
       items: [
         {
@@ -188,7 +188,7 @@ export const translations: Record<Language, Translations> = {
     },
     trust: {
       title: 'Trusted by Millions',
-      subtitle: 'Join millions of users who trust OldPho for their photo restoration needs.',
+      subtitle: 'Join millions of users who trust Shin AI for their photo restoration needs.',
       items: [
         {
           icon: '🛡️',
@@ -214,11 +214,11 @@ export const translations: Record<Language, Translations> = {
     },
     finalCta: {
       title: 'Ready to Restore Your Memories?',
-      subtitle: 'Join millions of users who have already transformed their old photos with OldPho.',
+      subtitle: 'Join millions of users who have already transformed their old photos with Shin AI.',
       button: 'Start Restoring Now'
     },
     share: {
-      title: 'OldPho - AI Photo Restoration',
+      title: 'Shin AI - AI Photo Restoration',
       description: 'Transform old, blurry, and damaged photos into crystal-clear memories using AI technology.'
     },
     title: 'Restore Your Photos with AI',
@@ -238,19 +238,19 @@ export const translations: Record<Language, Translations> = {
         {
           name: 'Sarah Johnson',
           role: 'Family Historian',
-          content: 'OldPho helped me restore my grandmother\'s wedding photo. The results were incredible - I could see details I never noticed before!',
+          content: 'Shin AI helped me restore my grandmother\'s wedding photo. The results were incredible - I could see details I never noticed before!',
           rating: 5
         },
         {
           name: 'Michael Chen',
           role: 'Photographer',
-          content: 'As a professional photographer, I\'m amazed by the quality of OldPho\'s restoration. It\'s become my go-to tool for client work.',
+          content: 'As a professional photographer, I\'m amazed by the quality of Shin AI\'s restoration. It\'s become my go-to tool for client work.',
           rating: 5
         },
         {
           name: 'Emma Rodriguez',
           role: 'Genealogy Researcher',
-          content: 'I\'ve restored hundreds of family photos with OldPho. The AI technology is simply outstanding - it brings history back to life.',
+          content: 'I\'ve restored hundreds of family photos with Shin AI. The AI technology is simply outstanding - it brings history back to life.',
           rating: 5
         }
       ]
@@ -264,7 +264,7 @@ export const translations: Record<Language, Translations> = {
   },
   'zh-TW': {
     seo: {
-      title: 'OldPho - AI 照片修復 | 使用 AI 修復老照片',
+      title: 'Shin AI - AI 照片修復 | 使用 AI 修復老照片',
       description: '使用先進的 AI 技術將老舊、模糊和損壞的照片轉化為清晰的回憶。免費照片修復服務。',
       keywords: 'AI 照片修復, 老照片修復, 模糊照片修復, 照片增強, 圖像修復, AI 照片修復'
     },
@@ -283,7 +283,7 @@ export const translations: Record<Language, Translations> = {
       support: '客戶支持'
     },
     features: {
-      title: '為什麼選擇 OldPho？',
+      title: '為什麼選擇 Shin AI？',
       subtitle: '先進的 AI 技術結合用戶友好的界面，提供最佳的照片修復體驗。',
       items: [
         {
@@ -354,7 +354,7 @@ export const translations: Record<Language, Translations> = {
     },
     trust: {
       title: '數百萬用戶信賴',
-      subtitle: '加入數百萬信賴 OldPho 進行照片修復的用戶行列。',
+      subtitle: '加入數百萬信賴 Shin AI 進行照片修復的用戶行列。',
       items: [
         {
           icon: '🛡️',
@@ -380,11 +380,11 @@ export const translations: Record<Language, Translations> = {
     },
     finalCta: {
       title: '準備好修復您的回憶了嗎？',
-      subtitle: '加入已經用 OldPho 轉變老照片的數百萬用戶行列。',
+      subtitle: '加入已經用 Shin AI 轉變老照片的數百萬用戶行列。',
       button: '立即開始修復'
     },
     share: {
-      title: 'OldPho - AI Photo Restoration',
+      title: 'Shin AI - AI Photo Restoration',
       description: '使用 AI 技術將老舊、模糊和損壞的照片轉換為清晰的回憶。'
     },
     title: '用 AI 修復您的照片',
@@ -404,19 +404,19 @@ export const translations: Record<Language, Translations> = {
         {
           name: '陳美玲',
           role: '家族史研究者',
-          content: 'OldPho 幫助我修復了祖母的婚禮照片。結果令人驚嘆 - 我看到了以前從未注意到的細節！',
+          content: 'Shin AI 幫助我修復了祖母的婚禮照片。結果令人驚嘆 - 我看到了以前從未注意到的細節！',
           rating: 5
         },
         {
           name: '王建國',
           role: '攝影師',
-          content: '作為專業攝影師，我對 OldPho 修復的品質感到驚訝。它已成為我客戶工作的首選工具。',
+          content: '作為專業攝影師，我對 Shin AI 修復的品質感到驚訝。它已成為我客戶工作的首選工具。',
           rating: 5
         },
         {
           name: '林雅婷',
           role: '家譜研究員',
-          content: '我已經用 OldPho 修復了數百張家庭照片。AI 技術簡直太出色了 - 它讓歷史重獲新生。',
+          content: '我已經用 Shin AI 修復了數百張家庭照片。AI 技術簡直太出色了 - 它讓歷史重獲新生。',
           rating: 5
         }
       ]
@@ -430,7 +430,7 @@ export const translations: Record<Language, Translations> = {
   },
   'ja': {
     seo: {
-      title: 'OldPho - AI写真復元 | AIで古い写真を復元',
+      title: 'Shin AI - AI写真復元 | AIで古い写真を復元',
       description: '先進的なAI技術を使用して、古く、ぼやけた、損傷した写真を水晶のように鮮明な思い出に変換します。無料の写真復元サービス。',
       keywords: 'AI写真復元, 古い写真修復, ぼやけた写真修正, 写真強化, 画像復元, AI写真修復'
     },
@@ -449,7 +449,7 @@ export const translations: Record<Language, Translations> = {
       support: 'カスタマーサポート'
     },
     features: {
-      title: 'なぜOldPhoを選ぶのか？',
+      title: 'なぜShin AIを選ぶのか？',
       subtitle: '先進的なAI技術とユーザーフレンドリーなインターフェースを組み合わせた最高の写真復元体験。',
       items: [
         {
@@ -520,7 +520,7 @@ export const translations: Record<Language, Translations> = {
     },
     trust: {
       title: '数百万人に信頼される',
-      subtitle: '写真復元ニーズでOldPhoを信頼する数百万人のユーザーに参加。',
+      subtitle: '写真復元ニーズでShin AIを信頼する数百万人のユーザーに参加。',
       items: [
         {
           icon: '🛡️',
@@ -546,11 +546,11 @@ export const translations: Record<Language, Translations> = {
     },
     finalCta: {
       title: '思い出を復元する準備はできましたか？',
-      subtitle: 'すでにOldPhoで古い写真を変身させた数百万人のユーザーに参加。',
+      subtitle: 'すでにShin AIで古い写真を変身させた数百万人のユーザーに参加。',
       button: '今すぐ復元開始'
     },
     share: {
-      title: 'OldPho - AI写真復元',
+      title: 'Shin AI - AI写真復元',
       description: 'AI技術を使用して古く、ぼやけた、損傷した写真を鮮明な思い出に変換。'
     },
     title: 'AIで写真を復元',
@@ -570,19 +570,19 @@ export const translations: Record<Language, Translations> = {
         {
           name: '田中花子',
           role: '家族史研究者',
-          content: 'OldPhoが祖母の結婚写真の復元を手伝ってくれました。結果は素晴らしく、以前気づかなかった細部が見えました！',
+          content: 'Shin AIが祖母の結婚写真の復元を手伝ってくれました。結果は素晴らしく、以前気づかなかった細部が見えました！',
           rating: 5
         },
         {
           name: '佐藤健一',
           role: '写真家',
-          content: 'プロの写真家として、OldPhoの復元品質に驚いています。クライアントワークの定番ツールになりました。',
+          content: 'プロの写真家として、Shin AIの復元品質に驚いています。クライアントワークの定番ツールになりました。',
           rating: 5
         },
         {
           name: '山田美咲',
           role: '家系図研究者',
-          content: 'OldPhoで何百枚もの家族写真を復元しました。AI技術は素晴らしく、歴史を蘇らせます。',
+          content: 'Shin AIで何百枚もの家族写真を復元しました。AI技術は素晴らしく、歴史を蘇らせます。',
           rating: 5
         }
       ]

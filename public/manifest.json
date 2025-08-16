@@ -1,6 +1,6 @@
 {
-  "name": "OldPho - AI Photo Restoration",
-  "short_name": "OldPho",
+  "name": "Shin AI - AI Photo Restoration",
+      "short_name": "Shin AI",
   "description": "Transform old, blurry, and damaged photos into crystal-clear memories using AI technology.",
   "start_url": "/",
   "display": "standalone",
