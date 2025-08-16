@@ -103,7 +103,7 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
         <link rel="preconnect" href="https://replicate.delivery" />
       </Head>
       <SessionProvider session={session}>
-        <PlausibleProvider domain='shinai.com'>
+        <PlausibleProvider domain='oldpho.com'>
           <LanguageProvider>
             <Component {...pageProps} />
           </LanguageProvider>

@@ -1,70 +1,24 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import redis from '../../utils/redis';
-import prisma from '../../lib/prismadb';
+import { NextApiRequest, NextApiResponse } from 'next';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const health = {
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    services: {
-      database: 'unknown',
-      redis: 'unknown',
-      replicate: 'unknown'
-    }
-  };
-
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // Check database connection
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-      health.services.database = 'ok';
-    } catch (error) {
-      health.services.database = 'error';
-      console.error('Database health check failed:', error);
-    }
+    // Basic health check
+    const healthData = {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      environment: process.env.NODE_ENV,
+      version: process.version
+    };
 
-    // Check Redis connection
-    try {
-      if (redis) {
-        await redis.ping();
-        health.services.redis = 'ok';
-      } else {
-        health.services.redis = 'not_configured';
-      }
-    } catch (error) {
-      health.services.redis = 'error';
-      console.error('Redis health check failed:', error);
-    }
-
-    // Check Replicate API key
-    if (process.env.REPLICATE_API_KEY) {
-      health.services.replicate = 'configured';
-    } else {
-      health.services.replicate = 'not_configured';
-    }
-
-    // Determine overall status
-    const criticalServices = ['database'];
-    const hasCriticalErrors = criticalServices.some(
-      service => health.services[service as keyof typeof health.services] === 'error'
-    );
-
-    if (hasCriticalErrors) {
-      health.status = 'error';
-      return res.status(503).json(health);
-    }
-
-    return res.status(200).json(health);
+    return res.status(200).json(healthData);
   } catch (error) {
-    console.error('Health check error:', error);
-    health.status = 'error';
-    return res.status(500).json(health);
+    console.error('Health check failed:', error);
+    return res.status(500).json({ 
+      status: 'unhealthy',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
   }
 } 

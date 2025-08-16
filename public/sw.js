@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shinai-v1.0.1';
+const CACHE_NAME = 'shinai-v1.0.2';
 const STATIC_CACHE = 'static-v1.1';
 const DYNAMIC_CACHE = 'dynamic-v1.1';
 
@@ -95,6 +95,13 @@ async function cacheFirst(request) {
     return networkResponse;
   } catch (error) {
     console.log('Cache first failed:', error);
+    // Return a fallback response for external resources
+    if (request.url.includes('plausible.io') || request.url.includes('external')) {
+      return new Response('', { 
+        status: 200,
+        headers: { 'Content-Type': 'text/plain' }
+      });
+    }
     return fetch(request);
   }
 }
