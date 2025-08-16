@@ -28,6 +28,7 @@ const AdminUsers: NextPage = () => {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -46,10 +47,12 @@ const AdminUsers: NextPage = () => {
       const response = await fetch('/api/admin/users');
       if (response.status === 403) {
         // User is not admin, redirect to dashboard
+        console.log('Access denied: User is not admin');
         router.push('/dashboard');
         return;
       } else if (response.ok) {
         // User is admin, fetch users
+        setIsAdmin(true);
         fetchUsers();
       } else {
         console.error('Failed to check admin access:', response.statusText);
@@ -63,7 +66,10 @@ const AdminUsers: NextPage = () => {
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
-      fetchUsers();
+      // Only fetch users if we've already confirmed admin access
+      if (users.length > 0 || currentPage === 1) {
+        fetchUsers();
+      }
     }
   }, [currentPage]);
 
@@ -98,7 +104,7 @@ const AdminUsers: NextPage = () => {
     );
   }
 
-  if (!session?.user) {
+  if (!session?.user || !isAdmin) {
     return null;
   }
 

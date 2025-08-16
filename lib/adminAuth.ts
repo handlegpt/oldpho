@@ -15,6 +15,7 @@ export async function checkAdminAuth(req: NextApiRequest, res: NextApiResponse):
     // Check authentication
     const session = await getServerSession(req, res, authOptions);
     if (!session?.user?.email) {
+      console.log('Admin auth failed: No session or email');
       return null;
     }
 
@@ -30,14 +31,17 @@ export async function checkAdminAuth(req: NextApiRequest, res: NextApiResponse):
     });
 
     if (!user) {
+      console.log('Admin auth failed: User not found in database');
       return null;
     }
 
     // Check if user has admin role
     if (user.role !== 'admin' && user.role !== 'super_admin') {
+      console.log('Admin auth failed: User role is not admin', { email: user.email, role: user.role });
       return null;
     }
 
+    console.log('Admin auth successful:', { email: user.email, role: user.role });
     return user;
   } catch (error) {
     console.error('Admin auth check error:', error);

@@ -31,6 +31,7 @@ const AdminDashboard: NextPage = () => {
     storageTotal: 1000
   });
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -46,10 +47,12 @@ const AdminDashboard: NextPage = () => {
       const response = await fetch('/api/admin/stats');
       if (response.status === 403) {
         // User is not admin, redirect to dashboard
+        console.log('Access denied: User is not admin');
         router.push('/dashboard');
         return;
       } else if (response.ok) {
         // User is admin, fetch stats
+        setIsAdmin(true);
         fetchAdminStats();
       } else {
         console.error('Failed to check admin access:', response.statusText);
@@ -85,7 +88,7 @@ const AdminDashboard: NextPage = () => {
     );
   }
 
-  if (!session?.user) {
+  if (!session?.user || !isAdmin) {
     return null;
   }
 
