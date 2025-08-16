@@ -10,6 +10,48 @@ interface SEOOptimizerProps {
   structuredData?: object;
 }
 
+// 安全的数据验证函数
+const validateStructuredData = (data: any): object => {
+  if (!data || typeof data !== 'object') {
+    return {};
+  }
+  
+  // 只允许安全的属性
+  const safeProperties = [
+    '@context', '@type', 'name', 'description', 'url', 
+    'applicationCategory', 'operatingSystem', 'offers', 'creator'
+  ];
+  
+  const sanitized: any = {};
+  for (const key of safeProperties) {
+    if (data[key] !== undefined) {
+      // 确保值是字符串或对象，避免函数等危险类型
+      if (typeof data[key] === 'string' || typeof data[key] === 'object') {
+        sanitized[key] = data[key];
+      }
+    }
+  }
+  
+  return sanitized;
+};
+
+// 安全的JSON序列化
+const safeStringify = (obj: object): string => {
+  try {
+    // 使用JSON.stringify的安全版本
+    return JSON.stringify(obj, (key, value) => {
+      // 过滤掉函数和其他危险类型
+      if (typeof value === 'function' || typeof value === 'symbol') {
+        return undefined;
+      }
+      return value;
+    });
+  } catch (error) {
+    console.error('JSON serialization error:', error);
+    return '{}';
+  }
+};
+
 const SEOOptimizer: React.FC<SEOOptimizerProps> = ({
   title,
   description,
@@ -24,7 +66,7 @@ const SEOOptimizer: React.FC<SEOOptimizerProps> = ({
   const defaultStructuredData = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "OldPho - AI Photo Restoration",
+    "name": "Shin AI - AI Photo Restoration",
     "description": description,
     "url": fullUrl,
     "applicationCategory": "PhotoApplication",
@@ -36,9 +78,13 @@ const SEOOptimizer: React.FC<SEOOptimizerProps> = ({
     },
     "creator": {
       "@type": "Organization",
-      "name": "OldPho"
+      "name": "Shin AI"
     }
   };
+
+  // 验证和清理结构化数据
+  const validatedStructuredData = validateStructuredData(structuredData || defaultStructuredData);
+  const safeJsonString = safeStringify(validatedStructuredData);
 
   return (
     <Head>
@@ -53,7 +99,7 @@ const SEOOptimizer: React.FC<SEOOptimizerProps> = ({
       <meta property="og:image" content={image} />
       <meta property="og:url" content={fullUrl} />
       <meta property="og:type" content={type} />
-      <meta property="og:site_name" content="OldPho" />
+      <meta property="og:site_name" content="Shin AI" />
       
       {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
@@ -64,14 +110,14 @@ const SEOOptimizer: React.FC<SEOOptimizerProps> = ({
       {/* 其他重要元标签 */}
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <meta name="robots" content="index, follow" />
-      <meta name="author" content="OldPho" />
+      <meta name="author" content="Shin AI" />
       <link rel="canonical" href={fullUrl} />
       
-      {/* 结构化数据 */}
+      {/* 结构化数据 - 使用安全的JSON */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData || defaultStructuredData)
+          __html: safeJsonString
         }}
       />
       
