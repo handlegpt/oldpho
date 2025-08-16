@@ -1,41 +1,8 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import EmailProvider from 'next-auth/providers/email';
 import GoogleProvider from 'next-auth/providers/google';
-
-// Simple in-memory adapter for development with proper token handling
-const memoryAdapter = {
-  createUser: async (data: any) => ({ id: Date.now().toString(), ...data }),
-  getUser: async (id: string) => null,
-  getUserByEmail: async (email: string) => null,
-  getUserByAccount: async (providerAccountId: any) => null,
-  updateUser: async (data: any) => data,
-  deleteUser: async (userId: string) => null,
-  linkAccount: async (data: any) => data,
-  unlinkAccount: async (providerAccountId: any) => null,
-  createSession: async (data: any) => data,
-  getSessionAndUser: async (sessionToken: string) => null,
-  updateSession: async (data: any) => data,
-  deleteSession: async (sessionToken: string) => null,
-  createVerificationToken: async (data: any) => {
-    // Store token in memory for development
-    const token = {
-      identifier: data.identifier,
-      token: data.token,
-      expires: data.expires
-    };
-    console.log('Created verification token:', token);
-    return token;
-  },
-  useVerificationToken: async (params: any) => {
-    console.log('Using verification token:', params);
-    // For development, always return the token
-    return {
-      identifier: params.identifier,
-      token: params.token,
-      expires: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
-    };
-  },
-};
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import prisma from '../../../lib/prismadb';
 
 // Get email content based on language preference
 const getEmailContent = (email: string, url: string) => {
@@ -46,13 +13,13 @@ const getEmailContent = (email: string, url: string) => {
   
   if (chineseDomains.includes(domain)) {
     return {
-      subject: 'OldPho - 登录验证',
-      text: `请点击以下链接登录 OldPho：\n\n${url}\n\n如果您没有请求此邮件，请忽略。`,
+      subject: 'Shin AI - 登录验证',
+      text: `请点击以下链接登录 Shin AI：\n\n${url}\n\n如果您没有请求此邮件，请忽略。`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">OldPho 登录验证</h2>
+          <h2 style="color: #333;">Shin AI 登录验证</h2>
           <p>请点击下面的按钮登录您的账户：</p>
-          <a href="${url}" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">登录 OldPho</a>
+          <a href="${url}" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">登录 Shin AI</a>
           <p>或者复制以下链接到浏览器：</p>
           <p style="word-break: break-all; color: #666;">${url}</p>
           <p style="color: #999; font-size: 12px;">如果您没有请求此邮件，请忽略。</p>
@@ -61,13 +28,13 @@ const getEmailContent = (email: string, url: string) => {
     };
   } else if (japaneseDomains.includes(domain)) {
     return {
-      subject: 'OldPho - ログイン認証',
-      text: `OldPhoにログインするには、以下のリンクをクリックしてください：\n\n${url}\n\nこのメールをリクエストしていない場合は、無視してください。`,
+      subject: 'Shin AI - ログイン認証',
+      text: `Shin AIにログインするには、以下のリンクをクリックしてください：\n\n${url}\n\nこのメールをリクエストしていない場合は、無視してください。`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">OldPho ログイン認証</h2>
+          <h2 style="color: #333;">Shin AI ログイン認証</h2>
           <p>下のボタンをクリックしてアカウントにログインしてください：</p>
-          <a href="${url}" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">OldPhoにログイン</a>
+          <a href="${url}" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">Shin AIにログイン</a>
           <p>または、以下のリンクをブラウザにコピーしてください：</p>
           <p style="word-break: break-all; color: #666;">${url}</p>
           <p style="color: #999; font-size: 12px;">このメールをリクエストしていない場合は、無視してください。</p>
@@ -76,13 +43,13 @@ const getEmailContent = (email: string, url: string) => {
     };
   } else {
     return {
-      subject: 'OldPho - Login Verification',
-      text: `Click the following link to sign in to OldPho:\n\n${url}\n\nIf you didn't request this email, please ignore it.`,
+      subject: 'Shin AI - Login Verification',
+      text: `Click the following link to sign in to Shin AI:\n\n${url}\n\nIf you didn't request this email, please ignore it.`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">OldPho Login Verification</h2>
+          <h2 style="color: #333;">Shin AI Login Verification</h2>
           <p>Click the button below to sign in to your account:</p>
-          <a href="${url}" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">Sign in to OldPho</a>
+          <a href="${url}" style="display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; margin: 20px 0;">Sign in to Shin AI</a>
           <p>Or copy the following link to your browser:</p>
           <p style="word-break: break-all; color: #666;">${url}</p>
           <p style="color: #999; font-size: 12px;">If you didn't request this email, please ignore it.</p>
@@ -149,7 +116,7 @@ if (validateEmailConfig()) {
         greetingTimeout: 60000,
         socketTimeout: 60000
       },
-      from: process.env.EMAIL_FROM || 'OldPho <hello@oldpho.com>',
+      from: process.env.EMAIL_FROM || 'Shin AI <hello@shinai.com>',
       maxAge: 10 * 60, // 10 minutes
       sendVerificationRequest: async ({ identifier, url, provider }: any) => {
         console.log('Sending verification email to:', identifier);
@@ -197,7 +164,7 @@ if (validateGoogleConfig()) {
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
-  adapter: memoryAdapter,
+  adapter: PrismaAdapter(prisma),
   providers,
   
   session: {
