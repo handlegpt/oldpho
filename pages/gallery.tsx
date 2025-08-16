@@ -45,12 +45,16 @@ const Gallery: NextPage = () => {
 
   useEffect(() => {
     const fetchGallery = async () => {
+      console.log('Gallery: Status:', status, 'Session:', session?.user?.email);
       if (status === 'authenticated' && session?.user) {
         try {
           setLoading(true);
+          console.log('Gallery: Fetching gallery data...');
           const response = await fetch('/api/gallery');
+          console.log('Gallery: Response status:', response.status);
           if (response.ok) {
             const data = await response.json();
+            console.log('Gallery: Received data:', data);
             setGalleryItems(data);
           } else {
             console.error('Failed to fetch gallery:', response.statusText);
@@ -60,6 +64,8 @@ const Gallery: NextPage = () => {
         } finally {
           setLoading(false);
         }
+      } else if (status === 'unauthenticated') {
+        console.log('Gallery: User not authenticated, redirecting...');
       }
     };
 

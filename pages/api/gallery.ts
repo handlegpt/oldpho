@@ -6,6 +6,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  console.log('Gallery API: Method:', req.method);
+  
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -13,7 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     // Check authentication
     const session = await getServerSession(req, res, authOptions);
+    console.log('Gallery API: Session:', session?.user?.email);
+    
     if (!session?.user?.email) {
+      console.log('Gallery API: Unauthorized');
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -27,7 +32,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     });
 
+    console.log('Gallery API: User found:', !!user, 'Restorations count:', user?.restorations?.length);
+
     if (!user) {
+      console.log('Gallery API: User not found');
       return res.status(404).json({ error: 'User not found' });
     }
 
