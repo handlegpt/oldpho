@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/[...nextauth]';
+import { requireAdminAuth } from '../../../lib/adminAuth';
 import prisma from '../../../lib/prismadb';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -9,13 +8,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Check authentication
-    const session = await getServerSession(req, res, authOptions);
-    if (!session?.user?.email) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    // TODO: Add admin role check here
+    // Check admin authentication
+    const adminUser = await requireAdminAuth(req, res);
+    console.log('Admin access granted for:', adminUser.email, 'Role:', adminUser.role);
     // For now, allow access to any authenticated user
 
     const page = parseInt(req.query.page as string) || 1;
@@ -35,7 +30,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const [users, totalUsers] = await Promise.all([
       prisma.user.findMany({
         where: searchConditions,
-        include: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          createdAt: true,
           restorations: {
             select: {
               id: true,

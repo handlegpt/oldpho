@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/[...nextauth]';
+import { requireAdminAuth } from '../../../lib/adminAuth';
 import prisma from '../../../lib/prismadb';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -9,15 +8,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Check authentication
-    const session = await getServerSession(req, res, authOptions);
-    if (!session?.user?.email) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    // TODO: Add admin role check here
-    // For now, allow access to any authenticated user
-    // You can add role-based access control later
+    // Check admin authentication
+    const adminUser = await requireAdminAuth(req, res);
+    console.log('Admin access granted for:', adminUser.email, 'Role:', adminUser.role);
 
     // Get system statistics
     const [

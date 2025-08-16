@@ -12,6 +12,7 @@ interface User {
   id: string;
   name: string | null;
   email: string | null;
+  role: string;
   createdAt: string;
   restorations: Array<{
     id: string;
@@ -36,9 +37,36 @@ const AdminUsers: NextPage = () => {
     if (status === 'unauthenticated') {
       router.push('/');
     } else if (status === 'authenticated' && session?.user) {
+      // Check if user is admin
+      checkAdminAccess();
+    }
+  }, [status, session, router]);
+
+  const checkAdminAccess = async () => {
+    try {
+      const response = await fetch('/api/admin/users');
+      if (response.status === 403) {
+        // User is not admin, redirect to dashboard
+        router.push('/dashboard');
+        return;
+      } else if (response.ok) {
+        // User is admin, fetch users
+        fetchUsers();
+      } else {
+        console.error('Failed to check admin access:', response.statusText);
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      console.error('Error checking admin access:', error);
+      router.push('/dashboard');
+    }
+  };
+
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user) {
       fetchUsers();
     }
-  }, [status, session, router, currentPage]);
+  }, [currentPage]);
 
   const fetchUsers = async () => {
     try {

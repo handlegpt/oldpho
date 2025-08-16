@@ -36,10 +36,30 @@ const AdminDashboard: NextPage = () => {
     if (status === 'unauthenticated') {
       router.push('/');
     } else if (status === 'authenticated' && session?.user) {
-      // Check if user is admin (you can add admin role check here)
-      fetchAdminStats();
+      // Check if user is admin
+      checkAdminAccess();
     }
   }, [status, session, router]);
+
+  const checkAdminAccess = async () => {
+    try {
+      const response = await fetch('/api/admin/stats');
+      if (response.status === 403) {
+        // User is not admin, redirect to dashboard
+        router.push('/dashboard');
+        return;
+      } else if (response.ok) {
+        // User is admin, fetch stats
+        fetchAdminStats();
+      } else {
+        console.error('Failed to check admin access:', response.statusText);
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      console.error('Error checking admin access:', error);
+      router.push('/dashboard');
+    }
+  };
 
   const fetchAdminStats = async () => {
     try {
