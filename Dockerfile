@@ -37,6 +37,9 @@ RUN mkdir -p /app/public/uploads && \
 # 切换到非root用户
 USER nextjs
 
+# 构建应用
+RUN npm run build
+
 # 暴露端口
 EXPOSE 3001
 
