@@ -37,6 +37,9 @@ RUN mkdir -p /app/public/uploads && \
 # 切换到非root用户
 USER nextjs
 
+# 生成Prisma客户端
+RUN npx prisma generate
+
 # 构建应用
 RUN npm run build
 
