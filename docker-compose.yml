@@ -97,7 +97,7 @@ services:
       - app_uploads:/app/public/uploads
       - app_logs:/app/logs
     ports:
-      - "3050:3001"
+      - "3001:3001"
     networks:
       - shinai-network
     depends_on:
