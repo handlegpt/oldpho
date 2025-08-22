@@ -56,7 +56,7 @@ class SecureLogger {
       'cookie', 'session', 'credential', 'private'
     ];
 
-    const sanitized = Array.isArray(data) ? [] : {};
+    const sanitized: any = Array.isArray(data) ? [] : {};
     
     for (const [key, value] of Object.entries(data)) {
       const lowerKey = key.toLowerCase();
