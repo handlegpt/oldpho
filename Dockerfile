@@ -48,10 +48,10 @@ EXPOSE 3001
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://0.0.0.0:3000/api/health || exit 1
+    CMD curl -f http://0.0.0.0:3001/api/health || exit 1
 
 # 使用dumb-init作为PID 1
 ENTRYPOINT ["dumb-init", "--"]
 
 # 启动命令
-CMD ["node", ".next/standalone/server.js"] 
+CMD ["npm", "start"] 

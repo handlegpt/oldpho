@@ -97,8 +97,7 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
 
-  // 输出配置
-  output: 'standalone',
+
 
   // 重定向规则
   async redirects() {
