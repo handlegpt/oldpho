@@ -54,4 +54,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 ENTRYPOINT ["dumb-init", "--"]
 
 # 启动命令
-CMD ["npm", "start"] 
+CMD ["node", ".next/standalone/server.js"] 
