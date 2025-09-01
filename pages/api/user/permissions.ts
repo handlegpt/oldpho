@@ -37,9 +37,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Get user plan and limits
     const planId = user.subscription?.planId || 'free';
-    const limits = await getUserLimits(user.id);
-    const restorationCheck = await checkRestorationLimit(user.id);
-    const storageCheck = await checkStorageLimit(user.id);
+    const limits = await getUserLimits(user.id.toString());
+    const restorationCheck = await checkRestorationLimit(user.id.toString());
+    const storageCheck = await checkStorageLimit(user.id.toString());
 
     // Calculate current usage
     const currentMonthRestorations = user.restorations.length;

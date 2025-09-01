@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('User found:', user.id, 'Email:', user.email);
 
     // Check restoration limits
-    const limitCheck = await checkRestorationLimit(user.id);
+    const limitCheck = await checkRestorationLimit(user.id.toString());
     if (!limitCheck.allowed) {
       console.log('Restoration limit exceeded:', limitCheck.error);
       return res.status(429).json({ 
@@ -84,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Check file size limit
-    const fileSizeCheck = await checkFileSizeLimit(uploadedFile.size || 0, user.id);
+    const fileSizeCheck = await checkFileSizeLimit(user.id.toString(), uploadedFile.size || 0);
     if (!fileSizeCheck.allowed) {
       return res.status(413).json({ 
         error: 'File size limit exceeded',

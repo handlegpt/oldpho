@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('User found:', user.id, 'Email:', user.email);
 
     // Check restoration limits
-    const limitCheck = await checkRestorationLimit(user.id);
+    const limitCheck = await checkRestorationLimit(user.id.toString());
     if (!limitCheck.allowed) {
       console.log('Restoration limit exceeded:', limitCheck.error);
       return res.status(429).json({ 
