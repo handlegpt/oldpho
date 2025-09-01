@@ -2,12 +2,16 @@
 
 ## 🔧 必需配置
 
-### 1. Replicate API Key
+### 1. AI API Keys (至少需要一个)
 ```bash
+# Replicate API (推荐)
 REPLICATE_API_KEY=your_replicate_api_key_here
-```
 - 获取地址：https://replicate.com/account/api-tokens
-- 用于 AI 照片修复功能
+
+# Google Gemini 2.5 Flash API (Nano Banana)
+GOOGLE_GEMINI_API_KEY=your_gemini_api_key_here
+- 获取地址：https://makersuite.google.com/app/apikey
+- 用于 AI 照片修复和增强功能
 
 ### 2. NextAuth 配置
 ```bash

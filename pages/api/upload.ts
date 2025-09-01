@@ -4,7 +4,7 @@ import { authOptions } from './auth/[...nextauth]';
 import * as fs from 'fs';
 import * as path from 'path';
 import formidable from 'formidable';
-import { replicate } from '../../lib/replicate';
+import { aiProviderManager } from '../../lib/aiProviders';
 import prisma from '../../lib/prismadb';
 import { checkRestorationLimit, checkFileSizeLimit, getUserPlan } from '../../lib/permissions';
 
@@ -127,26 +127,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('Original file saved:', originalPath);
 
     try {
-      // Call Replicate API for AI image restoration
-      console.log('Calling Replicate API for image restoration...');
+      // Call AI API for image restoration
+      console.log('Calling AI API for image restoration...');
       
-      // Convert image to base64 for Replicate API
+      // Convert image to base64 for AI API
       const imageBuffer = fs.readFileSync(originalPath);
       const base64Image = imageBuffer.toString('base64');
       const dataUrl = `data:image/jpeg;base64,${base64Image}`;
       
-      console.log('Sending base64 image to Replicate API...');
+      console.log('Sending base64 image to AI API...');
       
-      const result = await replicate.run(
-        "tencentarc/gfpgan:9283608cc6b7be6b65a8e44983db012355fde4132009bf99d976b2f0896856a3",
-        {
-          input: {
-            img: dataUrl,
-            version: "v1.4",
-            scale: 2
-          }
-        }
-      );
+      const result = await aiProviderManager.processImageWithFallback(dataUrl);
 
       // Download the restored image from Replicate
       if (typeof result === 'string' && result.startsWith('http')) {

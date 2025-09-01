@@ -78,8 +78,9 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       
-      # Replicate API配置
+      # AI API配置
       REPLICATE_API_TOKEN: ${REPLICATE_API_TOKEN}
+      GOOGLE_GEMINI_API_KEY: ${GOOGLE_GEMINI_API_KEY}
       
       # Plausible Analytics
       PLAUSIBLE_DOMAIN: ${PLAUSIBLE_DOMAIN:-shinai.com}
@@ -97,7 +98,7 @@ services:
       - app_uploads:/app/public/uploads
       - app_logs:/app/logs
     ports:
-      - "3001:3000"
+      - "3001:3001"
     networks:
       - shinai-network
     depends_on:
