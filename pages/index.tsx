@@ -9,6 +9,7 @@ import { translations } from '../utils/translations';
 import { useLanguage } from '../contexts/LanguageContext';
 import AnimatedCard from '../components/AnimatedCard';
 import ShareModal from '../components/ShareModal';
+import MobileFAB from '../components/MobileFAB';
 import { SEO } from '../components/SEO';
 
 const Home: NextPage = () => {
@@ -229,6 +230,7 @@ const Home: NextPage = () => {
         </main>
 
         <Footer />
+        <MobileFAB />
       </div>
 
       {showShareModal && (

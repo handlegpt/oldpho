@@ -391,7 +391,7 @@ const Restore: NextPage = () => {
                    'Choose Restoration Type'}
                 </h2>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   {enhancementOptions.map((option) => (
                     <button
                       key={option.value}

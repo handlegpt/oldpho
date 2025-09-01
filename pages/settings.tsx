@@ -217,17 +217,17 @@ const Settings: NextPage = () => {
             <section className="mb-8">
               <AnimatedCard>
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-2 shadow-strong border border-white/50">
-                  <div className="flex flex-wrap justify-center gap-2">
+                  <div className="flex flex-wrap justify-center gap-2 mobile-tabs">
                     {tabs.map(tab => (
-                      <button
-                        key={tab.id}
-                        className={`px-6 py-3 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center ${
-                          activeTab === tab.id 
-                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105' 
-                            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                        }`}
-                        onClick={() => setActiveTab(tab.id as any)}
-                      >
+                                              <button
+                          key={tab.id}
+                          className={`px-6 py-3 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center mobile-tab ${
+                            activeTab === tab.id 
+                              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105' 
+                              : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                          }`}
+                          onClick={() => setActiveTab(tab.id as any)}
+                        >
                         <span className="mr-2 text-xl">{tab.icon}</span>
                         {tab.text}
                       </button>

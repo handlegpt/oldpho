@@ -89,6 +89,9 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#3b82f6" />
+        <meta name="msapplication-TileColor" content="#3b82f6" />
+        <meta name="msapplication-config" content="/browserconfig.xml" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
 
         {/* PWA icons - using favicon only */}
         <link rel="apple-touch-icon" href="/favicon.ico" />
