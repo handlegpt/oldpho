@@ -4,14 +4,19 @@
 
 ### 1. AI API Keys (至少需要一个)
 ```bash
-# Replicate API (推荐)
-REPLICATE_API_KEY=your_replicate_api_key_here
-- 获取地址：https://replicate.com/account/api-tokens
-
-# Google Gemini 2.5 Flash API (Nano Banana)
+# Google Gemini 2.5 Flash API (Nano Banana) - 推荐
 GOOGLE_GEMINI_API_KEY=your_gemini_api_key_here
 - 获取地址：https://makersuite.google.com/app/apikey
-- 用于 AI 照片修复和增强功能
+- 简单快速，适合快速修复
+
+# Replicate API - 专业模型
+REPLICATE_API_KEY=your_replicate_api_key_here
+- 获取地址：https://replicate.com/account/api-tokens
+- 支持多种专业模型：
+  - GFPGAN: 人脸修复
+  - CodeFormer: 高质量人脸增强
+  - DeOldify: 老照片上色
+  - Real-ESRGAN: 超分辨率放大
 
 ### 2. NextAuth 配置
 ```bash

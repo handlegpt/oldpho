@@ -6,7 +6,7 @@ import * as path from 'path';
 import formidable from 'formidable';
 import { aiProviderManager } from '../../lib/aiProviders';
 import prisma from '../../lib/prismadb';
-import { checkRestorationLimit, checkFileSizeLimit, getUserPlan } from '../../lib/permissions';
+import { checkRestorationLimit, checkFileSizeLimit } from '../../lib/permissions';
 
 export const config = {
   api: {
@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    console.log('Upload API called');
+    console.log('Restore API called');
     
     // Check authentication
     const session = await getServerSession(req, res, authOptions);
@@ -56,28 +56,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log('Restoration limit check passed. Remaining:', limitCheck.remaining);
 
-    // Ensure uploads directory exists in public folder
+    // Ensure uploads directory exists
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    
-    // Create directory with proper permissions
-    try {
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true, mode: 0o777 });
-        console.log('Created uploads directory:', uploadsDir);
-      }
-      
-      // Ensure directory is writable
-      fs.accessSync(uploadsDir, fs.constants.W_OK);
-      console.log('Uploads directory is writable');
-    } catch (dirError) {
-      console.error('Directory creation/access error:', dirError);
-      return res.status(500).json({ 
-        error: 'Failed to create or access uploads directory',
-        message: dirError instanceof Error ? dirError.message : 'Unknown directory error'
-      });
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true, mode: 0o777 });
     }
 
-    // Parse the uploaded file
+    // Parse the uploaded file and form data
     const form = formidable({
       uploadDir: uploadsDir,
       keepExtensions: true,
@@ -87,33 +72,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('Parsing form data...');
     const [fields, files] = await form.parse(req);
     
-    console.log('Form fields:', fields);
-    console.log('Form files:', files);
-    console.log('Files keys:', Object.keys(files));
-    
-    const uploadedFile = files.image?.[0]; // Assuming the field name is 'image'
-    console.log('Uploaded file:', uploadedFile);
+    const uploadedFile = files.image?.[0];
+    const enhancementType = fields.enhancementType?.[0] || 'full';
+    const scale = parseInt(fields.scale?.[0] || '2');
+    const faceEnhancement = fields.faceEnhancement?.[0] === 'true';
+    const colorization = fields.colorization?.[0] === 'true';
+    const upscaling = fields.upscaling?.[0] === 'true';
 
     if (!uploadedFile) {
-      console.log('No image file found. Available files:', files);
       return res.status(400).json({ error: 'No image file uploaded' });
     }
 
-    console.log('File uploaded:', uploadedFile);
-
-    // Check file size limits
-    const fileSizeCheck = await checkFileSizeLimit(user.id, uploadedFile.size);
+    // Check file size limit
+    const fileSizeCheck = await checkFileSizeLimit(uploadedFile.size || 0, user.id);
     if (!fileSizeCheck.allowed) {
-      console.log('File size limit exceeded:', fileSizeCheck.error);
       return res.status(413).json({ 
-        error: 'File too large',
+        error: 'File size limit exceeded',
         message: fileSizeCheck.error
       });
     }
 
-    console.log('File size check passed');
-
-    // Generate unique filenames
     const timestamp = Date.now();
     const originalFilename = `original_${timestamp}_${path.basename(uploadedFile.originalFilename || 'image.jpg')}`;
     const processedFilename = `processed_${timestamp}_${path.basename(uploadedFile.originalFilename || 'image.jpg')}`;
@@ -127,27 +105,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('Original file saved:', originalPath);
 
     try {
-      // Call AI API for image restoration
-      console.log('Calling AI API for image restoration...');
-      
-      // Convert image to base64 for AI API
+      // Convert image to base64
       const imageBuffer = fs.readFileSync(originalPath);
       const base64Image = imageBuffer.toString('base64');
       const dataUrl = `data:image/jpeg;base64,${base64Image}`;
       
-      console.log('Sending base64 image to AI API...');
+      console.log(`Processing with ${enhancementType} enhancement...`);
       
       const result = await aiProviderManager.processImageWithFallback({
         imageData: dataUrl,
-        enhancementType: 'full', // 完整修复
+        enhancementType: enhancementType as any,
         options: {
-          faceEnhancement: true,
-          upscaling: true,
-          scale: 2
+          faceEnhancement,
+          colorization,
+          upscaling,
+          scale
         }
       });
 
-      // Download the restored image from Replicate
+      // Download the restored image
       if (typeof result === 'string' && result.startsWith('http')) {
         console.log('Downloading restored image from:', result);
         
@@ -159,6 +135,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         } else {
           throw new Error('Failed to download restored image');
         }
+      } else if (result.startsWith('data:image/')) {
+        // Handle base64 result
+        const base64Data = result.replace(/^data:image\/[a-z]+;base64,/, '');
+        fs.writeFileSync(processedPath, Buffer.from(base64Data, 'base64'));
+        console.log('Restored image saved from base64');
       } else {
         // Fallback: create a copy of original image
         console.log('Using fallback: copying original image');
@@ -179,65 +160,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const originalImageUrl = `/uploads/${originalFilename}`;
     const processedImageUrl = `/uploads/${processedFilename}`;
 
-    console.log('File uploaded and processed successfully:', {
-      original: originalImageUrl,
-      processed: processedImageUrl,
-      originalPath,
-      processedPath,
-      userId: session.user.email
-    });
-
     // Save restoration record to database
     try {
-      console.log('Attempting to save restoration record to database...');
-      console.log('User email:', session.user.email);
+      const restorationData = {
+        userId: user.id,
+        originalImage: originalImageUrl,
+        restoredImage: processedImageUrl,
+        status: 'completed',
+        processingTime: Date.now() - timestamp
+      };
       
-      const user = await prisma.user.findUnique({
-        where: { email: session.user.email! }
+      const restoration = await prisma.restoration.create({
+        data: restorationData
       });
-
-      console.log('User found:', !!user, 'User ID:', user?.id);
-
-      if (user) {
-        const restorationData = {
-          userId: user.id,
-          originalImage: originalImageUrl,
-          restoredImage: processedImageUrl,
-          status: 'completed',
-          processingTime: Date.now() - timestamp
-        };
-        
-        console.log('Creating restoration record with data:', restorationData);
-        
-        const restoration = await prisma.restoration.create({
-          data: restorationData
-        });
-        
-        console.log('Restoration record saved successfully:', restoration.id);
-      } else {
-        console.error('User not found in database');
-      }
+      
+      console.log('Restoration record saved successfully:', restoration.id);
     } catch (dbError) {
       console.error('Database error:', dbError);
-      console.error('Database error details:', {
-        message: dbError instanceof Error ? dbError.message : 'Unknown error',
-        stack: dbError instanceof Error ? dbError.stack : undefined
-      });
-      // Don't fail the request if database save fails
     }
 
     return res.status(200).json({
       success: true,
-      imageUrl: originalImageUrl,
-      processedImageUrl: processedImageUrl,
-      filename: originalFilename,
+      originalImage: originalImageUrl,
+      restoredImage: processedImageUrl,
+      enhancementType,
+      message: 'Image restored successfully'
     });
 
   } catch (error) {
-    console.error('Upload error:', error);
-    return res.status(500).json({ 
+    console.error('Restore API error:', error);
+    return res.status(500).json({
       error: 'Internal server error',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
-} 
+}
