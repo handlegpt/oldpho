@@ -28,6 +28,14 @@ const Dashboard: NextPage = () => {
 
   const [loading, setLoading] = useState(true);
   const [permissions, setPermissions] = useState<any>(null);
+  const [monthlyData, setMonthlyData] = useState([
+    { month: 'Jan', restorations: 3 },
+    { month: 'Feb', restorations: 5 },
+    { month: 'Mar', restorations: 2 },
+    { month: 'Apr', restorations: 7 },
+    { month: 'May', restorations: 4 },
+    { month: 'Jun', restorations: 6 }
+  ]);
 
   const [recentActivity, setRecentActivity] = useState([
     {
@@ -35,14 +43,16 @@ const Dashboard: NextPage = () => {
       type: 'restoration',
       title: 'Family Photo Restoration',
       date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      status: 'completed'
+      status: 'completed',
+      thumbnail: '/api/uploads/sample1.jpg'
     },
     {
       id: 2,
       type: 'upgrade',
       title: 'Plan Upgrade',
       date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      status: 'completed'
+      status: 'completed',
+      thumbnail: null
     }
   ]);
 
@@ -93,7 +103,7 @@ const Dashboard: NextPage = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="flex items-center justify-center min-h-screen">
-          <LoadingSpinner size="lg" color="blue" text="Loading..." />
+          <LoadingSpinner size="lg" />
         </div>
       </div>
     );
@@ -204,207 +214,385 @@ const Dashboard: NextPage = () => {
         'en': 'Enterprise',
         'zh-TW': '企业版',
         'ja': 'エンタープライズ'
+      },
+      usage: {
+        'en': 'Usage',
+        'zh-TW': '使用情况',
+        'ja': '使用状況'
+      },
+      monthlyTrend: {
+        'en': 'Monthly Trend',
+        'zh-TW': '月度趋势',
+        'ja': '月次トレンド'
+      },
+      performance: {
+        'en': 'Performance',
+        'zh-TW': '性能表现',
+        'ja': 'パフォーマンス'
       }
     };
-    return texts[key as keyof typeof texts]?.[currentLanguage] || texts[key as keyof typeof texts]?.['en'] || '';
+    return texts[key as keyof typeof texts]?.[currentLanguage] || texts[key as keyof typeof texts]?.['en'] || key;
+  };
+
+  const getPlanColor = (plan: string) => {
+    switch (plan) {
+      case 'free':
+        return 'bg-gray-100 text-gray-800';
+      case 'pro':
+        return 'bg-blue-100 text-blue-800';
+      case 'enterprise':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getPlanIcon = (plan: string) => {
+    switch (plan) {
+      case 'free':
+        return '⭐';
+      case 'pro':
+        return '🚀';
+      case 'enterprise':
+        return '🏢';
+      default:
+        return '⭐';
+    }
   };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString(currentLanguage === 'zh-TW' ? 'zh-TW' : currentLanguage === 'ja' ? 'ja-JP' : 'en-US');
+    return date.toLocaleDateString(currentLanguage === 'zh-TW' ? 'zh-TW' : currentLanguage === 'ja' ? 'ja-JP' : 'en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
-  const getPlanDisplayName = (plan: string) => {
-    switch (plan) {
-      case 'free':
-        return getDashboardText('free');
-      case 'pro':
-        return getDashboardText('pro');
-      case 'enterprise':
-        return getDashboardText('enterprise');
-      default:
-        return getDashboardText('free');
-    }
+  const getStoragePercentage = () => {
+    if (userStats.totalStorage === 0) return 0;
+    return Math.round((userStats.usedStorage / userStats.totalStorage) * 100);
+  };
+
+  const getUsageColor = (percentage: number) => {
+    if (percentage < 50) return 'text-green-600';
+    if (percentage < 80) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const getUsageBarColor = (percentage: number) => {
+    if (percentage < 50) return 'bg-green-500';
+    if (percentage < 80) return 'bg-yellow-500';
+    return 'bg-red-500';
   };
 
   return (
     <>
       <Head>
         <title>{getDashboardText('title')} - Shin AI</title>
-        <meta name="description" content="User dashboard for Shin AI" />
+        <meta name="description" content="Your AI photo restoration dashboard" />
       </Head>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <Header photo={undefined} />
-        <main className="container mx-auto px-4 py-8">
-          <div className="max-w-6xl mx-auto">
-            {/* Welcome Section */}
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-6">
-                <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-                Dashboard
-              </div>
-              <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-                {getDashboardText('welcome')}, {session.user?.name || session.user?.email}!
-              </h1>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                {getDashboardText('stats')}
-              </p>
-            </div>
 
-            {/* Statistics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <AnimatedCard className="group bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-gray-200/50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <Header photo={session?.user?.image || undefined} />
+
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Welcome Section */}
+            <section className="mb-8">
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-8 text-white">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-2">{getDashboardText('totalRestorations')}</p>
-                    <p className="text-3xl font-bold text-gray-900">
-                      {loading ? (
-                        <div className="animate-pulse bg-gray-200 h-10 w-20 rounded"></div>
-                      ) : (
-                        userStats.totalRestorations
-                      )}
+                    <h1 className="text-3xl font-bold mb-2">
+                      {getDashboardText('welcome')}, {session.user?.name || session.user?.email}!
+                    </h1>
+                    <p className="text-blue-100 text-lg">
+                      {currentLanguage === 'zh-TW' ? '继续您的照片修复之旅' :
+                       currentLanguage === 'ja' ? '写真修復の旅を続けましょう' :
+                       'Continue your photo restoration journey'}
                     </p>
                   </div>
-                  <div className="p-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
+                  <div className="hidden md:block">
+                    <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
+                      <span className="text-3xl">📸</span>
+                    </div>
                   </div>
                 </div>
-              </AnimatedCard>
+              </div>
+            </section>
 
-              <AnimatedCard className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">{getDashboardText('remainingGenerations')}</p>
-                    <p className="text-2xl font-bold text-gray-900">{userStats.remainingGenerations}</p>
+            {/* Stats Grid */}
+            <section className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                {getDashboardText('stats')}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Total Restorations */}
+                <AnimatedCard>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-strong border border-white/50">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <span className="text-2xl">🖼️</span>
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        {getDashboardText('totalRestorations')}
+                      </span>
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 mb-2">
+                      {userStats.totalRestorations}
+                    </div>
+                    <div className="text-sm text-green-600">
+                      +{userStats.thisMonthRestorations} {getDashboardText('thisMonth')}
+                    </div>
                   </div>
-                  <div className="p-3 bg-green-100 rounded-full">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                </div>
-              </AnimatedCard>
+                </AnimatedCard>
 
-              <AnimatedCard className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">{getDashboardText('planType')}</p>
-                    <p className="text-2xl font-bold text-gray-900">{getPlanDisplayName(userStats.planType)}</p>
+                {/* Remaining Generations */}
+                <AnimatedCard>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-strong border border-white/50">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                        <span className="text-2xl">⚡</span>
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        {getDashboardText('remainingGenerations')}
+                      </span>
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 mb-2">
+                      {userStats.remainingGenerations}
+                    </div>
+                    <div className="text-sm text-blue-600">
+                      {currentLanguage === 'zh-TW' ? '剩余次数' :
+                       currentLanguage === 'ja' ? '残り回数' :
+                       'Remaining'}
+                    </div>
                   </div>
-                  <div className="p-3 bg-purple-100 rounded-full">
-                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                </div>
-              </AnimatedCard>
+                </AnimatedCard>
 
-              <AnimatedCard className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">{getDashboardText('thisMonth')}</p>
-                    <p className="text-2xl font-bold text-gray-900">{userStats.thisMonthRestorations}</p>
+                {/* Current Plan */}
+                <AnimatedCard>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-strong border border-white/50">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <span className="text-2xl">{getPlanIcon(userStats.planType)}</span>
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        {getDashboardText('planType')}
+                      </span>
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 mb-2">
+                      {getDashboardText(userStats.planType)}
+                    </div>
+                    <div className={`text-sm px-3 py-1 rounded-full inline-block ${getPlanColor(userStats.planType)}`}>
+                      {currentLanguage === 'zh-TW' ? '当前计划' :
+                       currentLanguage === 'ja' ? '現在のプラン' :
+                       'Current Plan'}
+                    </div>
                   </div>
-                  <div className="p-3 bg-orange-100 rounded-full">
-                    <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                </div>
-              </AnimatedCard>
-            </div>
+                </AnimatedCard>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Quick Actions */}
-              <div className="lg:col-span-1">
-                <AnimatedCard className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">{getDashboardText('quickActions')}</h2>
-                  <div className="space-y-4">
-                    <Link href="/restore" className="block w-full p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center font-medium">
-                      {getDashboardText('restorePhoto')}
-                    </Link>
-                    <Link href="/pricing" className="block w-full p-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-center font-medium">
-                      {getDashboardText('upgrade')}
-                    </Link>
-                    <Link href="/gallery" className="block w-full p-4 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-center font-medium">
-                      {getDashboardText('viewGallery')}
-                    </Link>
-                    <Link href="/support" className="block w-full p-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-center font-medium">
-                      {getDashboardText('helpSupport')}
-                    </Link>
+                {/* Storage Usage */}
+                <AnimatedCard>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-strong border border-white/50">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                        <span className="text-2xl">💾</span>
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        {getDashboardText('storage')}
+                      </span>
+                    </div>
+                    <div className="text-3xl font-bold text-gray-900 mb-2">
+                      {getStoragePercentage()}%
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-300 ${getUsageBarColor(getStoragePercentage())}`}
+                        style={{ width: `${getStoragePercentage()}%` }}
+                      ></div>
+                    </div>
+                    <div className={`text-sm ${getUsageColor(getStoragePercentage())}`}>
+                      {userStats.usedStorage}MB / {userStats.totalStorage}MB
+                    </div>
                   </div>
                 </AnimatedCard>
               </div>
+            </section>
 
-              {/* Recent Activity */}
-              <div className="lg:col-span-2">
-                <AnimatedCard className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">{getDashboardText('recentActivity')}</h2>
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Quick Actions */}
+              <section className="lg:col-span-1">
+                <AnimatedCard>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-strong border border-white/50">
+                    <h3 className="text-xl font-bold text-gray-800 mb-6">
+                      {getDashboardText('quickActions')}
+                    </h3>
+                    <div className="space-y-4">
+                      <Link
+                        href="/restore"
+                        className="flex items-center p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl hover:from-blue-100 hover:to-purple-100 transition-medium group"
+                      >
+                        <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-4 group-hover:scale-110 transition-medium">
+                          <span className="text-white text-lg">📸</span>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">
+                            {getDashboardText('restorePhoto')}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {currentLanguage === 'zh-TW' ? '开始新的照片修复' :
+                             currentLanguage === 'ja' ? '新しい写真修復を開始' :
+                             'Start a new restoration'}
+                          </div>
+                        </div>
+                      </Link>
+
+                      <Link
+                        href="/gallery"
+                        className="flex items-center p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl hover:from-green-100 hover:to-blue-100 transition-medium group"
+                      >
+                        <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center mr-4 group-hover:scale-110 transition-medium">
+                          <span className="text-white text-lg">🖼️</span>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">
+                            {getDashboardText('viewGallery')}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {currentLanguage === 'zh-TW' ? '查看您的照片库' :
+                             currentLanguage === 'ja' ? '写真ギャラリーを表示' :
+                             'View your photo gallery'}
+                          </div>
+                        </div>
+                      </Link>
+
+                      <Link
+                        href="/pricing"
+                        className="flex items-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl hover:from-purple-100 hover:to-pink-100 transition-medium group"
+                      >
+                        <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center mr-4 group-hover:scale-110 transition-medium">
+                          <span className="text-white text-lg">💎</span>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">
+                            {getDashboardText('viewPricing')}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {currentLanguage === 'zh-TW' ? '升级您的计划' :
+                             currentLanguage === 'ja' ? 'プランをアップグレード' :
+                             'Upgrade your plan'}
+                          </div>
+                        </div>
+                      </Link>
+
+                      <Link
+                        href="/help"
+                        className="flex items-center p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl hover:from-orange-100 hover:to-red-100 transition-medium group"
+                      >
+                        <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center mr-4 group-hover:scale-110 transition-medium">
+                          <span className="text-white text-lg">❓</span>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">
+                            {getDashboardText('helpSupport')}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {currentLanguage === 'zh-TW' ? '获取帮助和支持' :
+                             currentLanguage === 'ja' ? 'ヘルプとサポートを取得' :
+                             'Get help and support'}
+                          </div>
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
+                </AnimatedCard>
+              </section>
+
+              {/* Monthly Trend Chart */}
+              <section className="lg:col-span-2">
+                <AnimatedCard>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-strong border border-white/50">
+                    <h3 className="text-xl font-bold text-gray-800 mb-6">
+                      {getDashboardText('monthlyTrend')}
+                    </h3>
+                    <div className="h-64 flex items-end justify-between space-x-2">
+                      {monthlyData.map((data, index) => {
+                        const maxValue = Math.max(...monthlyData.map(d => d.restorations));
+                        const height = (data.restorations / maxValue) * 100;
+                        return (
+                          <div key={index} className="flex-1 flex flex-col items-center">
+                            <div className="text-xs text-gray-600 mb-2">{data.restorations}</div>
+                            <div
+                              className="w-full bg-gradient-to-t from-blue-600 to-purple-600 rounded-t-lg transition-all duration-300 hover:from-blue-700 hover:to-purple-700"
+                              style={{ height: `${height}%` }}
+                            ></div>
+                            <div className="text-xs text-gray-500 mt-2">{data.month}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </AnimatedCard>
+              </section>
+            </div>
+
+            {/* Recent Activity */}
+            <section className="mt-8">
+              <AnimatedCard>
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-strong border border-white/50">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-gray-800">
+                      {getDashboardText('recentActivity')}
+                    </h3>
+                    <Link
+                      href="/history"
+                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    >
+                      {getDashboardText('viewHistory')} →
+                    </Link>
+                  </div>
+                  
                   {recentActivity.length > 0 ? (
                     <div className="space-y-4">
                       {recentActivity.map((activity) => (
-                        <div key={activity.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                          <div className="flex items-center space-x-3">
-                            <div className={`p-2 rounded-full ${
-                              activity.type === 'restoration' ? 'bg-blue-100' : 'bg-green-100'
-                            }`}>
-                              <svg className={`w-5 h-5 ${
-                                activity.type === 'restoration' ? 'text-blue-600' : 'text-green-600'
-                              }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                {activity.type === 'restoration' ? (
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                ) : (
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                )}
-                              </svg>
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900">{activity.title}</p>
-                              <p className="text-sm text-gray-500">{formatDate(activity.date)}</p>
-                            </div>
+                        <div key={activity.id} className="flex items-center p-4 bg-gray-50 rounded-xl">
+                          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                            {activity.type === 'restoration' ? (
+                              <span className="text-blue-600 text-lg">🖼️</span>
+                            ) : (
+                              <span className="text-green-600 text-lg">⚡</span>
+                            )}
                           </div>
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            activity.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {activity.status}
-                          </span>
+                          <div className="flex-1">
+                            <div className="font-semibold text-gray-900">{activity.title}</div>
+                            <div className="text-sm text-gray-600">{formatDate(activity.date)}</div>
+                          </div>
+                          <div className="text-sm text-green-600 font-medium">
+                            {activity.status === 'completed' ? (
+                              currentLanguage === 'zh-TW' ? '已完成' :
+                              currentLanguage === 'ja' ? '完了' :
+                              'Completed'
+                            ) : activity.status}
+                          </div>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-gray-400 text-2xl">📝</span>
+                      </div>
                       <p className="text-gray-500">{getDashboardText('noRecentActivity')}</p>
                     </div>
                   )}
-                </AnimatedCard>
-              </div>
-            </div>
-
-            {/* Storage Usage */}
-            <div className="mt-8">
-              <AnimatedCard className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-                <h2 className="text-xl font-semibold text-gray-900 mb-6">{getDashboardText('storage')}</h2>
-                <div className="space-y-4">
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>{getDashboardText('storage')}</span>
-                    <span>{userStats.usedStorage}MB / {userStats.totalStorage}MB</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${(userStats.usedStorage / userStats.totalStorage) * 100}%` }}
-                    ></div>
-                  </div>
                 </div>
               </AnimatedCard>
-            </div>
+            </section>
           </div>
         </main>
+
         <Footer />
       </div>
     </>
