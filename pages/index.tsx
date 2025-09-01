@@ -24,7 +24,6 @@ const Home: NextPage = () => {
   }, []);
 
   const handleGetStarted = () => {
-    // Use window.location.href for forced navigation
     if (typeof window !== 'undefined') {
       window.location.href = '/restore';
     }
@@ -59,279 +58,55 @@ const Home: NextPage = () => {
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-6xl mx-auto">
             {/* Hero Section */}
-            <section className="text-center py-16 sm:py-24">
-              <div className="relative">
-                {/* Background decoration */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-96 h-96 bg-blue-100 rounded-full opacity-20 blur-3xl"></div>
-                  <div className="absolute w-64 h-64 bg-purple-100 rounded-full opacity-20 blur-3xl -top-20 -right-20"></div>
-                </div>
-                
-                <div className="relative z-10">
-                  <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-6">
-                    <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-                    AI-Powered Photo Restoration
-                  </div>
-                  
-                  <h1 className="text-5xl sm:text-7xl font-bold text-gray-900 mb-8 leading-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    {t.hero.title}
-                  </h1>
-                  
-                  <p className="text-xl sm:text-2xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed">
-                    {t.hero.subtitle}
-                  </p>
-                  
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                    <button
-                      onClick={handleGetStarted}
-                      className="group relative bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-5 px-10 rounded-2xl text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 hover:from-blue-700 hover:to-purple-700"
-                    >
-                      <span className="relative z-10">{t.hero.cta}</span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-purple-700 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </button>
-                    
-                    <button
-                      onClick={handleShare}
-                      className="flex items-center space-x-2 bg-white text-gray-700 font-semibold py-5 px-8 rounded-2xl text-lg transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 hover:border-gray-300"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                      </svg>
-                      <span>Share</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Stats Section */}
-            <section className="py-20">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <AnimatedCard className="bg-white/80 backdrop-blur-sm border border-gray-200/50">
-                  <div className="text-center p-8">
-                    <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div className="text-4xl font-bold text-blue-600 mb-2">10,000+</div>
-                    <div className="text-gray-600 font-medium">{t.stats.photos}</div>
-                  </div>
-                </AnimatedCard>
-                <AnimatedCard className="bg-white/80 backdrop-blur-sm border border-gray-200/50">
-                  <div className="text-center p-8">
-                    <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="text-4xl font-bold text-green-600 mb-2">98%</div>
-                    <div className="text-gray-600 font-medium">{t.stats.satisfaction}</div>
-                  </div>
-                </AnimatedCard>
-                <AnimatedCard className="bg-white/80 backdrop-blur-sm border border-gray-200/50">
-                  <div className="text-center p-8">
-                    <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 109.75 9.75A9.75 9.75 0 0012 2.25z" />
-                      </svg>
-                    </div>
-                    <div className="text-4xl font-bold text-purple-600 mb-2">24/7</div>
-                    <div className="text-gray-600 font-medium">{t.stats.support}</div>
-                  </div>
-                </AnimatedCard>
-              </div>
-            </section>
-
-            {/* Features Section */}
-            <section className="py-20">
-              <div className="text-center mb-16">
-                <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-6">
-                  <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-                  Features
-                </div>
-                <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-                  {t.features.title}
-                </h2>
-                <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                  {t.features.subtitle}
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {t.features.items.map((feature, index) => (
-                  <AnimatedCard key={index} className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 hover:border-blue-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                    <div className="text-center p-8">
-                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg">
-                        <div className="text-2xl text-white">{feature.icon}</div>
-                      </div>
-                      <h3 className="text-xl font-bold mb-4 text-gray-900 group-hover:text-blue-600 transition-colors duration-300">{feature.title}</h3>
-                      <p className="text-gray-600 leading-relaxed text-sm">{feature.description}</p>
-                    </div>
-                  </AnimatedCard>
-                ))}
-              </div>
-            </section>
-
-            {/* How It Works Section */}
-            <section className="py-20">
-              <div className="text-center mb-16">
-                <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium mb-6">
-                  <span className="w-2 h-2 bg-green-600 rounded-full mr-2"></span>
-                  Process
-                </div>
-                <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-                  {t.howItWorks.title}
-                </h2>
-                <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                  {t.howItWorks.subtitle}
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {t.howItWorks.steps.map((step, index) => (
-                  <AnimatedCard key={index} className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 hover:border-green-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                    <div className="text-center p-8 relative">
-                      <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                        <div className="text-2xl font-bold text-white">{index + 1}</div>
-                      </div>
-                      <h3 className="text-xl font-bold mb-4 text-gray-900 group-hover:text-green-600 transition-colors duration-300">{step.title}</h3>
-                      <p className="text-gray-600 leading-relaxed text-sm">{step.description}</p>
-                      
-                      {/* Connection line for desktop */}
-                      {index < 2 && (
-                        <div className="hidden md:block absolute top-1/2 -right-4 w-8 h-0.5 bg-gradient-to-r from-green-400 to-blue-400 transform -translate-y-1/2"></div>
-                      )}
-                    </div>
-                  </AnimatedCard>
-                ))}
-              </div>
-            </section>
-
-            {/* Before/After Section */}
-            <section className="py-20">
-              <div className="text-center mb-16">
-                <div className="inline-flex items-center px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium mb-6">
-                  <span className="w-2 h-2 bg-purple-600 rounded-full mr-2"></span>
-                  Transformation
-                </div>
-                <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-                  {t.beforeAfter.title}
-                </h2>
-                <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                  {t.beforeAfter.subtitle}
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                <AnimatedCard className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 hover:border-red-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                  <div className="text-center p-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-2xl font-bold mb-6 text-gray-900 group-hover:text-red-600 transition-colors duration-300">{t.beforeAfter.before}</h3>
-                    <div className="bg-gradient-to-br from-gray-100 to-gray-200 h-80 rounded-2xl mb-6 flex items-center justify-center border-2 border-dashed border-gray-300 group-hover:border-red-300 transition-colors duration-300">
-                      <div className="text-center">
-                        <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span className="text-gray-500 font-medium">Before Image</span>
-                      </div>
-                    </div>
-                  </div>
-                </AnimatedCard>
-                
-                <AnimatedCard className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 hover:border-green-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                  <div className="text-center p-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-2xl font-bold mb-6 text-gray-900 group-hover:text-green-600 transition-colors duration-300">{t.beforeAfter.after}</h3>
-                    <div className="bg-gradient-to-br from-green-100 to-blue-100 h-80 rounded-2xl mb-6 flex items-center justify-center border-2 border-dashed border-green-300 group-hover:border-green-400 transition-colors duration-300">
-                      <div className="text-center">
-                        <svg className="w-16 h-16 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="text-green-600 font-medium">After Image</span>
-                      </div>
-                    </div>
-                  </div>
-                </AnimatedCard>
-              </div>
-            </section>
-
-            {/* Trust Section */}
-            <section className="py-20">
-              <div className="text-center mb-16">
-                <div className="inline-flex items-center px-4 py-2 bg-orange-100 text-orange-800 rounded-full text-sm font-medium mb-6">
-                  <span className="w-2 h-2 bg-orange-600 rounded-full mr-2"></span>
-                  Trust
-                </div>
-                <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
-                  {t.trust.title}
-                </h2>
-                <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                  {t.trust.subtitle}
-                </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {t.trust.items.map((item, index) => (
-                  <AnimatedCard key={index} className="group bg-white/90 backdrop-blur-sm border border-gray-200/50 hover:border-orange-300 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                    <div className="text-center p-6">
-                      <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                        <div className="text-xl text-white">{item.icon}</div>
-                      </div>
-                      <h3 className="text-lg font-bold mb-3 text-gray-900 group-hover:text-orange-600 transition-colors duration-300">{item.title}</h3>
-                      <p className="text-gray-600 text-sm leading-relaxed">{item.description}</p>
-                    </div>
-                  </AnimatedCard>
-                ))}
-              </div>
-            </section>
-
-            {/* Final CTA Section */}
-            <section className="py-20 text-center relative overflow-hidden">
-              {/* Background decoration */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-96 h-96 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full opacity-20 blur-3xl"></div>
-                <div className="absolute w-64 h-64 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full opacity-20 blur-3xl -top-20 -right-20"></div>
+            <section className="text-center py-16 sm:py-24 relative overflow-hidden">
+              {/* Animated Background */}
+              <div className="absolute inset-0">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50"></div>
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-100 rounded-full opacity-20 blur-3xl animate-pulse"></div>
+                <div className="absolute top-20 right-1/4 w-64 h-64 bg-purple-100 rounded-full opacity-20 blur-3xl animate-pulse delay-1000"></div>
+                <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-pink-100 rounded-full opacity-15 blur-3xl animate-pulse delay-2000"></div>
               </div>
               
               <div className="relative z-10">
-                <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 rounded-full text-sm font-medium mb-6">
-                  <span className="w-2 h-2 bg-blue-600 rounded-full mr-2"></span>
-                  Get Started
+                {/* Badge */}
+                <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 rounded-full text-sm font-semibold mb-8 shadow-lg border border-blue-200/50">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
+                    <span>✨ AI-Powered Photo Restoration</span>
+                    <span className="w-2 h-2 bg-purple-600 rounded-full animate-pulse delay-500"></span>
+                  </div>
                 </div>
                 
-                <h2 className="text-4xl sm:text-6xl font-bold text-gray-900 mb-6">
-                  {t.finalCta.title}
-                </h2>
-                <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-                  {t.finalCta.subtitle}
+                {/* Main Title */}
+                <h1 className="text-responsive-xl font-bold text-gray-900 mb-8 leading-tight">
+                  <span className="gradient-text">
+                    {t.hero.title}
+                  </span>
+                </h1>
+                
+                {/* Subtitle */}
+                <p className="text-responsive text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed font-medium animate-fade-in">
+                  {t.hero.subtitle}
                 </p>
                 
-                <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
                   <button
                     onClick={handleGetStarted}
-                    className="group relative bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-5 px-12 rounded-2xl text-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 hover:from-blue-700 hover:to-purple-700"
+                    className="group relative bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-6 px-12 rounded-2xl text-lg transition-medium shadow-strong hover:shadow-2xl transform hover:scale-105 hover:from-blue-700 hover:to-purple-700 min-w-[200px] btn-hover-effect"
                   >
-                    <span className="relative z-10 flex items-center space-x-2">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <span className="relative z-10 flex items-center justify-center">
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                       </svg>
-                      <span>{t.finalCta.button}</span>
+                      {t.hero.cta}
                     </span>
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-purple-700 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </button>
                   
                   <button
                     onClick={handleShare}
-                    className="flex items-center space-x-2 bg-white/90 backdrop-blur-sm text-gray-700 font-semibold py-5 px-8 rounded-2xl text-lg transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 hover:border-gray-300 hover:bg-white"
+                    className="flex items-center space-x-3 bg-white text-gray-700 font-semibold py-6 px-10 rounded-2xl text-lg transition-medium shadow-medium hover:shadow-strong border-2 border-gray-200 hover:border-blue-300 hover:text-blue-600 min-w-[180px] card-hover"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
@@ -339,26 +114,135 @@ const Home: NextPage = () => {
                     <span>Share</span>
                   </button>
                 </div>
+
+                {/* Demo Section */}
+                <div className="max-w-6xl mx-auto">
+                  <div className="glass rounded-strong p-8 shadow-strong border border-white/50 animate-slide-up">
+                    <h3 className="text-2xl font-bold text-gray-800 mb-6">See the Magic in Action</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                      {/* Demo Card 1 */}
+                      <div className="group relative overflow-hidden rounded-medium bg-gradient-to-br from-gray-50 to-gray-100 p-6 card-hover transition-medium">
+                        <div className="aspect-square bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl mb-4 flex items-center justify-center">
+                          <svg className="w-16 h-16 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                        <h4 className="font-bold text-gray-800 mb-2">Face Restoration</h4>
+                        <p className="text-gray-600 text-sm">Perfect for old portraits and family photos</p>
+                      </div>
+
+                      {/* Demo Card 2 */}
+                      <div className="group relative overflow-hidden rounded-medium bg-gradient-to-br from-gray-50 to-gray-100 p-6 card-hover transition-medium">
+                        <div className="aspect-square bg-gradient-to-br from-green-100 to-blue-100 rounded-xl mb-4 flex items-center justify-center">
+                          <svg className="w-16 h-16 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2" />
+                          </svg>
+                        </div>
+                        <h4 className="font-bold text-gray-800 mb-2">Photo Enhancement</h4>
+                        <p className="text-gray-600 text-sm">Improve clarity and remove imperfections</p>
+                      </div>
+
+                      {/* Demo Card 3 */}
+                      <div className="group relative overflow-hidden rounded-medium bg-gradient-to-br from-gray-50 to-gray-100 p-6 card-hover transition-medium">
+                        <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl mb-4 flex items-center justify-center">
+                          <svg className="w-16 h-16 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z" />
+                          </svg>
+                        </div>
+                        <h4 className="font-bold text-gray-800 mb-2">Color Restoration</h4>
+                        <p className="text-gray-600 text-sm">Bring life back to faded and damaged photos</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Features Section */}
+            <section className="py-16 sm:py-24">
+              <div className="text-center mb-16">
+                <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+                  Why Choose <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Shin AI</span>?
+                </h2>
+                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                  Experience the power of multiple AI models working together to deliver the best possible results
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <AnimatedCard>
+                  <div className="text-center p-8">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Lightning Fast</h3>
+                    <p className="text-gray-600">Get your photos restored in seconds with our optimized AI models</p>
+                  </div>
+                </AnimatedCard>
+
+                <AnimatedCard>
+                  <div className="text-center p-8">
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Professional Quality</h3>
+                    <p className="text-gray-600">Multiple AI models ensure the highest quality restoration results</p>
+                  </div>
+                </AnimatedCard>
+
+                <AnimatedCard>
+                  <div className="text-center p-8">
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Secure & Private</h3>
+                    <p className="text-gray-600">Your photos are processed securely and never stored permanently</p>
+                  </div>
+                </AnimatedCard>
+              </div>
+            </section>
+
+            {/* CTA Section */}
+            <section className="py-16 sm:py-24 text-center">
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 text-white">
+                <h2 className="text-4xl sm:text-5xl font-bold mb-6">
+                  Ready to Restore Your Memories?
+                </h2>
+                <p className="text-xl mb-8 opacity-90">
+                  Join thousands of users who have already restored their precious photos
+                </p>
+                <button
+                  onClick={handleGetStarted}
+                  className="bg-white text-blue-600 font-bold py-4 px-8 rounded-2xl text-lg hover:bg-gray-100 transition-colors duration-300"
+                >
+                  Start Restoring Now
+                </button>
               </div>
             </section>
           </div>
         </main>
 
         <Footer />
-
-        {showShareModal && (
-          <ShareModal
-            isOpen={showShareModal}
-            onClose={() => setShowShareModal(false)}
-            shareData={{
-              title: t.share.title,
-              description: t.share.description,
-              url: typeof window !== 'undefined' ? window.location.href : ''
-            }}
-            currentLanguage={currentLanguage}
-          />
-        )}
       </div>
+
+      {showShareModal && (
+        <ShareModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          shareData={{
+            title: t.share.title,
+            description: t.share.description,
+            url: typeof window !== 'undefined' ? window.location.href : ''
+          }}
+          currentLanguage={currentLanguage}
+        />
+      )}
     </>
   );
 };
