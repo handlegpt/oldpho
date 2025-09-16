@@ -1,6 +1,6 @@
-const CACHE_NAME = 'shinai-v1.0.3';
-const STATIC_CACHE = 'static-v1.2';
-const DYNAMIC_CACHE = 'dynamic-v1.2';
+const CACHE_NAME = 'shinai-v1.0.4';
+const STATIC_CACHE = 'static-v1.3';
+const DYNAMIC_CACHE = 'dynamic-v1.3';
 
 const STATIC_ASSETS = [
   '/',
@@ -83,6 +83,11 @@ async function cacheFirst(request) {
       return fetch(request);
     }
     
+    // 跳过跨域请求
+    if (url.origin !== location.origin) {
+      return fetch(request);
+    }
+    
     const cache = await caches.open(STATIC_CACHE);
     const cachedResponse = await cache.match(request);
     
@@ -91,17 +96,36 @@ async function cacheFirst(request) {
     }
     
     const networkResponse = await fetch(request);
-    cache.put(request, networkResponse.clone());
+    
+    // 只缓存成功的响应
+    if (networkResponse.ok) {
+      cache.put(request, networkResponse.clone());
+    }
+    
     return networkResponse;
   } catch (error) {
     console.log('Cache first failed:', error);
-    // Return a fallback response for external resources
-    if (request.url.includes('plausible.io') || request.url.includes('external')) {
+    
+    // 对于外部资源，返回空响应
+    if (request.url.includes('plausible.io') || request.url.includes('external') || request.url.includes('analytics')) {
       return new Response('', { 
         status: 200,
         headers: { 'Content-Type': 'text/plain' }
       });
     }
+    
+    // 对于内部资源，尝试从缓存获取
+    try {
+      const cache = await caches.open(STATIC_CACHE);
+      const cachedResponse = await cache.match(request);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+    } catch (cacheError) {
+      console.log('Cache fallback failed:', cacheError);
+    }
+    
+    // 最后尝试网络请求
     return fetch(request);
   }
 }

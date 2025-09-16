@@ -65,7 +65,8 @@ const validateEmailConfig = () => {
   const missing = required.filter(key => !process.env[key]);
   
   if (missing.length > 0) {
-    console.error('Missing email configuration:', missing);
+    console.warn('Email configuration incomplete:', missing);
+    console.warn('Email login will be disabled. Please configure email settings to enable email login.');
     return false;
   }
   
@@ -145,7 +146,17 @@ if (validateEmailConfig()) {
           return result;
         } catch (error: any) {
           console.error('Email sending failed:', error);
-          throw error;
+          
+          // 提供更详细的错误信息
+          if (error.code === 'EAUTH') {
+            throw new Error('Email authentication failed. Please check your email credentials.');
+          } else if (error.code === 'ECONNECTION') {
+            throw new Error('Unable to connect to email server. Please check your network connection.');
+          } else if (error.code === 'ETIMEDOUT') {
+            throw new Error('Email server connection timed out. Please try again later.');
+          } else {
+            throw new Error(`Email sending failed: ${error.message}`);
+          }
         }
       }
     })
